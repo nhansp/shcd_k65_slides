@@ -60,12 +60,12 @@ header { display: flex; align-items: baseline; justify-content: space-between; g
 }
 .btns button.next { background: var(--orange); color: #fff; }
 .btns button:active { filter: brightness(1.25); transform: scale(.98); }
-@media (orientation: landscape) and (max-height: 500px) {
+@media (orientation: landscape) {
     body { gap: 8px; }
-    .btns button { height: 18vh; min-height: 56px; font-size: 40px; }
+    .btns button { height: 20dvh; min-height: 56px; font-size: 40px; }
     #clock { font-size: 32px; }
-    /* keep the current slide inside the space between header and buttons */
-    .view.cur .frame { width: min(100%, calc((100vh - 190px) * 16 / 9)); margin: 0 auto; }
+    /* fit the current slide between header and buttons: 100dvh - buttons - header/labels/gaps */
+    .view.cur .frame { width: min(100%, calc((80dvh - 120px) * 16 / 9)); margin: 0 auto; }
 }
 </style>
 </head>
@@ -117,8 +117,16 @@ header { display: flex; align-items: baseline; justify-content: space-between; g
         if (navigator.vibrate) navigator.vibrate(15);
         fetch("/api/cmd", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cmd }) });
     }
-    document.querySelector(".prev").addEventListener("click", () => send("prev"));
-    document.querySelector(".next").addEventListener("click", () => send("next"));
+    // fullscreen needs a tap: the clock toggles it, and the first ‹ › press enters it
+    function fullscreen(on) {
+        const d = document.documentElement;
+        if (on && !document.fullscreenElement && d.requestFullscreen)
+            d.requestFullscreen({ navigationUI: "hide" }).then(() => screen.orientation?.lock?.("landscape").catch(() => {})).catch(() => {});
+        else if (!on && document.fullscreenElement) document.exitFullscreen();
+    }
+    $("clock").addEventListener("click", () => fullscreen(!document.fullscreenElement));
+    document.querySelector(".prev").addEventListener("click", () => { fullscreen(true); send("prev"); });
+    document.querySelector(".next").addEventListener("click", () => { fullscreen(true); send("next"); });
     addEventListener("keydown", e => {
         if (["ArrowRight", "PageDown", " "].includes(e.key)) send("next");
         else if (["ArrowLeft", "PageUp"].includes(e.key)) send("prev");
