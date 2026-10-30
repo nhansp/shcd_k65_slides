@@ -1,0 +1,2165 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sinh hoạt chuyên môn K65: IDE, LLM, Git + GitHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wdth,wght@6..144,25..151,1..1000&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@300..800&display=swap">
+<style>
+:root {
+    --paper: #FFFFFF;
+    --ink: #1E2226;
+    --graphite: #59606A;
+    --gray: #9AA1AA;
+    --rule: #DCE0E4;
+    --faint: #F2F4F6;
+    --green: #1E8E3E;
+    --green-soft: #E8F4EC;
+    --red: #D93025;
+    --red-soft: #FCECEA;
+    --orange: #E8710A;
+    --orange-soft: #FEF1E6;
+
+    --f-head: "Google Sans Flex", "Adwaita Sans", system-ui, sans-serif;
+    --f-body: "Adwaita Sans", "Google Sans Flex", system-ui, sans-serif;
+    --f-code: "Google Sans Code", "Adwaita Mono", ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    height: 100%;
+    background: #E9ECEF;
+    overflow: hidden;
+    color: var(--ink);
+    font-family: var(--f-body);
+}
+
+/* ---------- stage ---------- */
+.deck {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 1920px; height: 1080px;
+    transform-origin: center center;
+}
+
+.slide {
+    position: absolute;
+    inset: 0;
+    background-color: var(--paper);
+    background-image:
+        linear-gradient(to right, #E9ECEF 1px, transparent 1px),
+        linear-gradient(to bottom, #E9ECEF 1px, transparent 1px),
+        linear-gradient(to right, #F5F6F8 1px, transparent 1px),
+        linear-gradient(to bottom, #F5F6F8 1px, transparent 1px);
+    background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+    background-position: 60px 60px;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .18s ease, visibility 0s linear .18s;
+}
+.slide.is-active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity .18s ease;
+}
+
+/* drafting frame */
+.frame {
+    position: absolute;
+    inset: 60px;
+    border: 1.5px solid var(--ink);
+    pointer-events: none;
+    z-index: 3;
+}
+.frame::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border: 1px solid var(--rule);
+}
+.ruler-x, .ruler-y {
+    position: absolute;
+    z-index: 3;
+    pointer-events: none;
+}
+.ruler-x {
+    left: 60px; right: 60px; top: 36px; height: 24px;
+    background:
+        linear-gradient(to right, var(--gray) 1px, transparent 1px) 0 100% / 120px 24px no-repeat repeat,
+        linear-gradient(to right, var(--gray) 1px, transparent 1px) 0 100% / 24px 10px repeat-x;
+    background-repeat: repeat-x;
+}
+.ruler-y {
+    top: 60px; bottom: 60px; left: 36px; width: 24px;
+    background:
+        linear-gradient(to bottom, var(--gray) 1px, transparent 1px) 100% 0 / 24px 120px repeat-y,
+        linear-gradient(to bottom, var(--gray) 1px, transparent 1px) 100% 0 / 10px 24px repeat-y;
+}
+.reg {
+    position: absolute;
+    width: 36px; height: 36px;
+    z-index: 3;
+    pointer-events: none;
+}
+.reg::before, .reg::after {
+    content: "";
+    position: absolute;
+    background: var(--ink);
+}
+.reg::before { left: 17px; top: 0; width: 1.5px; height: 36px; }
+.reg::after { top: 17px; left: 0; height: 1.5px; width: 36px; }
+.reg.tl { left: 42px; top: 42px; }
+.reg.tr { right: 42px; top: 42px; }
+.reg.bl { left: 42px; bottom: 42px; }
+.reg.br { right: 42px; bottom: 42px; }
+
+/* decoration layer */
+.decor {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+.decor svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.glyph {
+    position: absolute;
+    font-family: var(--f-code);
+    color: #B9BFC6;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+/* title block (drawing sheet info) */
+.titleblock {
+    position: absolute;
+    right: 60px; bottom: 60px;
+    padding: 12px 22px 11px;
+    border-top: 1.5px solid var(--ink);
+    border-left: 1.5px solid var(--ink);
+    background: var(--paper);
+    z-index: 4;
+    font-family: var(--f-head);
+    font-weight: 560;
+    font-size: 19px;
+    color: var(--ink);
+}
+.titleblock .tb-dot { color: var(--orange); margin: 0 10px; }
+.titleblock .tb-sheet { font-family: var(--f-code); font-weight: 500; color: var(--graphite); }
+
+/* ---------- content ---------- */
+.content {
+    position: absolute;
+    left: 150px; right: 150px;
+    top: 132px; bottom: 170px;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+}
+
+.path {
+    font-family: var(--f-code);
+    font-size: 22px;
+    color: var(--graphite);
+    margin-bottom: 18px;
+}
+.path .p-user { color: var(--green); }
+.path .p-dir { color: var(--orange); }
+
+h1, h2, h3 {
+    font-family: var(--f-head);
+    font-weight: 640;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+}
+h2 {
+    font-size: 76px;
+    font-variation-settings: "wdth" 88, "opsz" 72;
+    margin-bottom: 44px;
+    max-width: 28ch;
+}
+h3 {
+    font-size: 34px;
+    font-variation-settings: "wdth" 92;
+    margin-bottom: 14px;
+}
+
+p, li { font-size: 30px; line-height: 1.45; }
+.lede { font-size: 36px; line-height: 1.4; max-width: 32ch; color: var(--ink); }
+.muted { color: var(--graphite); }
+.small { font-size: 24px; line-height: 1.45; }
+
+code, .code {
+    font-family: var(--f-code);
+    font-size: .88em;
+}
+p code, li code, td code {
+    background: var(--faint);
+    border: 1px solid var(--rule);
+    padding: 1px 8px;
+    border-radius: 4px;
+}
+
+.g { color: var(--green); }
+.r { color: var(--red); }
+.o { color: var(--orange); }
+
+ul.plain { list-style: none; }
+ul.plain li { position: relative; padding-left: 44px; margin-bottom: 14px; }
+ul.plain li::before {
+    content: "";
+    position: absolute;
+    left: 4px; top: .5em;
+    width: 16px; height: 16px;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+}
+ul.plain.green li::before { border-color: var(--green); }
+
+.cols { display: grid; gap: 80px; flex: 1; min-height: 0; }
+.cols.c2 { grid-template-columns: 1fr 1fr; }
+.cols.c2-wide { grid-template-columns: 1.1fr 1fr; }
+.cols.c3 { grid-template-columns: repeat(3, 1fr); gap: 56px; }
+
+/* terminal / code sheet */
+.term {
+    font-family: var(--f-code);
+    font-size: 26px;
+    line-height: 1.6;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    position: relative;
+    align-self: start;
+}
+.term .t-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--rule);
+    font-size: 18px;
+    color: var(--graphite);
+}
+.term .t-head i {
+    width: 12px; height: 12px;
+    border: 1.5px solid var(--gray);
+    border-radius: 50%;
+}
+.term .t-head span { margin-left: 8px; }
+.term pre {
+    font-family: inherit;
+    padding: 18px 24px;
+    white-space: pre;
+}
+.term .c { color: var(--gray); }
+.term .pr { color: var(--green); }
+.term .add { color: var(--green); background: var(--green-soft); display: block; margin: 0 -24px; padding: 0 24px; }
+.term .del { color: var(--red); background: var(--red-soft); display: block; margin: 0 -24px; padding: 0 24px; }
+.term .hl { color: var(--orange); }
+
+/* tables */
+table.spec {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 27px;
+}
+table.spec th {
+    text-align: left;
+    font-family: var(--f-head);
+    font-weight: 500;
+    font-size: 21px;
+    color: var(--graphite);
+    padding: 0 18px 12px 0;
+    border-bottom: 1.5px solid var(--ink);
+}
+table.spec td {
+    padding: 15px 18px 15px 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+    line-height: 1.35;
+}
+table.spec td:first-child {
+    font-family: var(--f-head);
+    font-weight: 600;
+    font-size: 30px;
+    white-space: nowrap;
+}
+table.spec kbd {
+    font-family: var(--f-code);
+    font-size: 23px;
+    border: 1.5px solid var(--ink);
+    border-bottom-width: 3px;
+    border-radius: 6px;
+    padding: 1px 9px;
+    background: var(--paper);
+    white-space: nowrap;
+}
+
+/* svg diagrams */
+svg.dia { overflow: visible; }
+svg.dia text:not([font-family]) { font-family: var(--f-body); }
+svg.dia text:not([fill]) { fill: var(--ink); }
+svg.dia .mono { font-family: var(--f-code); }
+svg.dia .lbl { font-size: 24px; }
+svg.dia .sm { font-size: 19px; fill: var(--graphite); }
+svg.dia .ann { fill: var(--orange); font-size: 21px; font-family: var(--f-code); }
+
+/* section divider */
+.slide.divider .content { justify-content: center; }
+.divider .sec-no {
+    font-family: var(--f-code);
+    font-size: 30px;
+    color: var(--orange);
+    margin-bottom: 20px;
+}
+.divider h2 {
+    font-size: 180px;
+    font-weight: 700;
+    font-variation-settings: "wdth" 75, "opsz" 144;
+    letter-spacing: -0.03em;
+    line-height: .92;
+    margin-bottom: 36px;
+}
+.divider .sec-list {
+    font-family: var(--f-code);
+    font-size: 28px;
+    color: var(--graphite);
+    line-height: 1.7;
+}
+.divider .sec-list span { color: var(--gray); }
+
+/* title slide */
+.cover .content { top: 150px; }
+.cover .logos { display: flex; align-items: center; gap: 22px; margin-bottom: 56px; }
+.cover .logos img.ftds { height: 54px; }
+.cover .logos img.ftu { height: 72px; }
+.cover h1 {
+    font-size: 132px;
+    font-weight: 720;
+    font-variation-settings: "wdth" 72, "opsz" 144;
+    letter-spacing: -0.035em;
+    line-height: .92;
+    max-width: 10ch;
+}
+.cover .sub {
+    margin-top: 34px;
+    font-family: var(--f-code);
+    font-size: 30px;
+    color: var(--graphite);
+}
+.cover .sub b { color: var(--ink); font-weight: 500; }
+.people {
+    margin-top: auto;
+    display: grid;
+    grid-template-columns: max-content max-content max-content;
+    gap: 8px 24px;
+    align-items: baseline;
+    font-size: 26px;
+}
+.people code { color: var(--green); font-size: 21px; }
+.people small { font-size: 19px; color: var(--gray); }
+
+/* ring dividers: start colored, then rings outside the section fade to gray */
+@media (prefers-reduced-motion: no-preference) {
+    .slide.is-active .dim { animation: dim .8s ease .9s both; }
+    .slide.is-active .fade-out { animation: fade-out .8s ease .9s both; }
+    .slide.is-active .fade-in { animation: fade-in .8s ease .9s both; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .dim { filter: grayscale(1) opacity(.35); }
+    .fade-out { opacity: 0; }
+}
+@keyframes dim { from { filter: none; } to { filter: grayscale(1) opacity(.35); } }
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* cover tool logos: fade gray <-> original color, rippling around the rings */
+.cover .tool { filter: grayscale(1) opacity(.55); }
+.cover g:hover > .tool { filter: none; }
+@media (prefers-reduced-motion: no-preference) {
+    .slide.is-active .tool {
+        animation: tint 2.4s ease-in-out infinite alternate;
+        animation-delay: calc(3s + var(--i) * .18s);
+    }
+}
+@keyframes tint {
+    0%, 15% { filter: grayscale(1) opacity(.55); }
+    85%, 100% { filter: grayscale(0) opacity(1); }
+}
+
+/* draw-on for cover construction */
+@media (prefers-reduced-motion: no-preference) {
+    .slide.is-active .draw {
+        stroke-dasharray: var(--len);
+        stroke-dashoffset: var(--len);
+        animation: draw 1.6s cubic-bezier(.6,0,.2,1) forwards;
+        animation-delay: var(--d, 0s);
+    }
+    .slide.is-active .pop {
+        opacity: 0;
+        animation: pop .4s ease forwards;
+        animation-delay: var(--d, 0s);
+    }
+}
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes pop { to { opacity: 1; } }
+
+/* easter egg: beach party, slide 2 */
+.egg { position: absolute; left: 150px; bottom: 78px; z-index: 2; }
+@media (prefers-reduced-motion: no-preference) {
+    .slide.is-active .egg .think circle { animation: think 1.4s ease-in-out infinite; }
+    .slide.is-active .egg .think circle:nth-child(2) { animation-delay: .2s; }
+    .slide.is-active .egg .think circle:nth-child(3) { animation-delay: .4s; }
+}
+@keyframes think { 0%, 60%, 100% { opacity: .2; } 30% { opacity: 1; } }
+
+/* paged screenshot slides: icon tiles on the left light up for the page on screen */
+.ide-icons { display: grid; grid-template-columns: repeat(3, 108px); gap: 18px; margin-top: 44px; align-items: center; }
+.ico {
+    width: 108px; height: 108px;
+    display: grid; place-items: center;
+    border: 1.5px dashed var(--rule);
+    background: var(--paper);
+    padding: 0;
+    cursor: pointer;
+    transition: border-color .3s;
+}
+.ico img { width: 62px; height: 62px; object-fit: contain; filter: grayscale(1) opacity(.35); transition: filter .3s; }
+.ico .nano-t { font: 700 26px var(--f-code); color: #7c00cd; filter: grayscale(1) opacity(.35); transition: filter .3s; }
+.ico.on { border: 2px solid var(--ink); }
+.ico.on img, .ico.on .nano-t { filter: none; }
+.ico-more { font: 500 34px var(--f-code); color: var(--gray); padding-left: 10px; }
+.pages { position: relative; }
+.page { display: none; grid-template-columns: 1fr 1fr; gap: 40px; }
+.page.is-on { display: grid; }
+@media (prefers-reduced-motion: no-preference) {
+    .page.is-on .shot-card { animation: page-in .35s ease both; }
+    .page.is-on .shot-card + .shot-card { animation-delay: .06s; }
+}
+@keyframes page-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.shot-card { margin: 0; }
+.shot-card img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    object-position: left top;
+    border: 1.5px solid var(--ink);
+    background: var(--faint);
+}
+.shot-card figcaption { margin-top: 16px; display: flex; flex-direction: column; gap: 4px; }
+.shot-card b { font-family: var(--f-head); font-weight: 640; font-size: 36px; }
+.shot-card span { font-size: 24px; line-height: 1.35; color: var(--graphite); }
+.pager { display: flex; align-items: center; gap: 10px; margin-top: 34px; }
+.pager i { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--gray); }
+.pager i.on { background: var(--orange); border-color: var(--orange); }
+.pager span { margin-left: 8px; font: 500 20px var(--f-code); color: var(--graphite); }
+.quit-vim .qv, .more-card .qv {
+    aspect-ratio: 1 / 1;
+    border: 1.5px dashed var(--orange);
+    padding: 32px 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 22px;
+}
+.quit-vim .small, .more-card .small { font-size: 26px; }
+.more-list { font: 500 32px/1.35 var(--f-head); }
+.qv-keys { font-size: 30px; display: flex; gap: 12px; align-items: center; }
+.qv-keys kbd, .qv-keys code {
+    font-family: var(--f-code);
+    font-size: 30px;
+    border: 1.5px solid var(--ink);
+    border-bottom-width: 3px;
+    border-radius: 6px;
+    padding: 2px 12px;
+    background: var(--paper);
+}
+.qv-keys code { color: var(--orange); border-color: var(--orange); }
+
+/* real screenshots */
+.shot {
+    display: block;
+    width: 100%;
+    max-height: 790px;
+    object-fit: contain;
+    object-position: left top;
+    border: 1.5px solid var(--ink);
+    margin-top: 4px;
+}
+
+/* real exchanges from Claude Code logs */
+.xcols > div { display: flex; flex-direction: column; }
+.xchg { border: 1.5px solid var(--ink); background: var(--paper); font-family: var(--f-code); font-size: 22px; line-height: 1.5; margin-top: 18px; }
+.xchg .x-you { background: var(--faint); border-bottom: 1px solid var(--rule); padding: 12px 16px 12px 40px; position: relative; overflow-wrap: anywhere; }
+.xchg .x-you::before { content: "❯"; position: absolute; left: 16px; color: var(--green); font-weight: 700; }
+.xchg .x-ai { padding: 14px 18px 8px 42px; position: relative; font-family: var(--f-body); font-size: 24px; line-height: 1.42; }
+.xchg .x-ai::before { content: "⏺"; position: absolute; left: 14px; top: 13px; color: var(--orange); font-size: 15px; }
+.xchg .x-ai code { font-size: 20px; background: var(--faint); padding: 0 4px; }
+.xchg .x-you .hl { color: var(--orange); }
+.xchg .x-src { padding: 0 18px 12px 42px; font-size: 17px; color: var(--gray); }
+.x-take { margin-top: 16px; font-size: 25px; line-height: 1.4; color: var(--green); }
+.x-head { margin-bottom: 0; }
+.chips { margin-top: auto; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; font-size: 22px; color: var(--graphite); }
+.chips b { font-weight: 500; color: var(--ink); border: 1.5px solid var(--ink); border-radius: 999px; padding: 2px 16px; }
+.used { margin-top: auto; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; font-size: 22px; color: var(--graphite); }
+.used b { font-weight: 500; color: var(--ink); border: 1.5px solid var(--green); border-radius: 999px; padding: 2px 16px; }
+.hero-n { font-family: var(--f-head); font-weight: 700; font-size: 200px; line-height: .9; letter-spacing: -0.04em; font-variation-settings: "wdth" 80, "opsz" 144; color: var(--ink); margin-bottom: 20px; }
+.hero-n span { font-size: .5em; color: var(--orange); margin-left: 6px; }
+.st-chart text { font-family: var(--f-body); }
+.st-chart .st-lbl { font-size: 24px; fill: var(--ink); }
+.st-chart .st-in { font-size: 21px; font-weight: 600; }
+.st-legend { display: flex; gap: 28px; margin: 6px 0 0 200px; font-size: 21px; color: var(--ink); }
+.st-legend i { display: inline-block; width: 16px; height: 16px; border-radius: 4px; margin-right: 8px; vertical-align: -2px; }
+.st-legend em { font-style: normal; color: var(--graphite); margin-left: 4px; }
+
+/* LLM closing slide */
+.desk-shot { margin: 0; }
+.desk-shot img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border: 1.5px solid var(--ink); background: var(--faint); }
+.desk-shot figcaption { margin-top: 14px; }
+.genie { font-family: var(--f-head); font-weight: 680; font-size: 64px; line-height: 1.08; letter-spacing: -0.015em; font-variation-settings: "wdth" 86, "opsz" 72; border-left: 6px solid var(--orange); padding-left: 32px; }
+
+/* batch 3 */
+.shot-crop { height: 300px; object-fit: cover; object-position: left top; }
+.divider .sec-log { font-size: 21px; max-width: 880px; }
+.st-wrap { display: flex; flex-direction: column; gap: 14px; max-width: 1200px; }
+.st-note { font-size: 32px; max-width: 46ch; margin-top: 18px; }
+.st-chart .st-val { font-size: 24px; font-weight: 600; fill: var(--ink); }
+.st-chart .st-val.o { fill: var(--orange); }
+.st-chart .st-ref { font-size: 20px; fill: var(--green); }
+.price-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.price-list li { display: flex; flex-direction: column; border-top: 1px solid var(--rule); padding-top: 10px; }
+.price-list b { font-family: var(--f-head); font-weight: 620; font-size: 25px; }
+.price-list span { font-size: 20px; color: var(--graphite); line-height: 1.35; }
+.torv { position: relative; margin: 0; }
+.torv-shot { display: block; width: 100%; border: 1.5px solid var(--ink); }
+.torv-git { position: absolute; right: -28px; top: -28px; width: 104px; height: 104px; padding: 16px; background: #fff; border: 1.5px solid var(--ink); border-radius: 50%; }
+.torv figcaption { margin-top: 10px; font-family: var(--f-code); }
+svg .fname { font-size: 17px; fill: var(--ink); }
+svg .fname.struck { fill: var(--red); text-decoration: line-through; }
+.why-git { display: flex; gap: 28px; align-items: flex-start; margin-top: 18px; }
+.why-chips { margin-top: auto; }
+.why-chips b { border-color: var(--green); }
+.plat-logo { width: 56px; height: 56px; object-fit: contain; display: inline-block; margin: 0 10px 14px 0; }
+.shot-sm { display: block; width: 100%; border: 1.5px solid var(--ink); }
+.signup-shots { display: flex; flex-direction: column; gap: 18px; }
+.signup-shots figure { margin: 0; }
+.signup-shots img { display: block; width: 100%; max-height: 300px; object-fit: cover; object-position: left top; border: 1.5px solid var(--ink); }
+.signup-shots figcaption { margin-top: 6px; }
+.web-steps { display: flex; gap: 28px; align-items: center; margin-top: 24px; }
+.web-steps figure { margin: 0; }
+.web-steps img { display: block; height: 120px; width: auto; max-width: 720px; object-fit: contain; border: 1.5px solid var(--ink); background: #fff; }
+.web-steps figcaption { margin-top: 6px; }
+@media (prefers-reduced-motion: no-preference) {
+    .slide.is-active svg.sweep .sw { opacity: 0; animation: pop .45s ease forwards; animation-delay: var(--d, 0s); }
+}
+
+/* /ctl preview copies */
+.preview .progress { display: none; }
+
+/* misc components */
+.callout {
+    border-left: 4px solid var(--orange);
+    padding: 6px 0 6px 28px;
+    font-size: 32px;
+    line-height: 1.4;
+    max-width: 40ch;
+}
+.callout.green { border-color: var(--green); }
+.callout.red { border-color: var(--red); }
+
+.steps { list-style: none; counter-reset: s; }
+.steps li {
+    counter-increment: s;
+    position: relative;
+    padding-left: 84px;
+    margin-bottom: 26px;
+    min-height: 54px;
+}
+.steps li::before {
+    content: counter(s);
+    position: absolute;
+    left: 0; top: -4px;
+    width: 54px; height: 54px;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-family: var(--f-code);
+    font-size: 24px;
+}
+.steps li b { font-family: var(--f-head); font-weight: 600; }
+.steps li p { font-size: 24px; color: var(--graphite); line-height: 1.4; }
+
+.filelist {
+    font-family: var(--f-code);
+    font-size: 27px;
+    line-height: 1.85;
+}
+.filelist s { color: var(--red); text-decoration-thickness: 2px; }
+
+.os-col h3 { display: flex; align-items: baseline; gap: 14px; }
+.os-col .term { font-size: 23px; }
+
+.tag {
+    display: inline-block;
+    font-family: var(--f-code);
+    font-size: 20px;
+    border: 1.5px solid currentColor;
+    border-radius: 999px;
+    padding: 0 12px;
+    vertical-align: middle;
+}
+
+.agents { display: grid; grid-template-columns: 1fr 1fr; gap: 0 56px; }
+.agents div { border-top: 1px solid var(--rule); padding: 18px 0 20px; }
+.agents b { font-family: var(--f-head); font-weight: 620; font-size: 32px; display: block; }
+.agents span { font-size: 23px; color: var(--graphite); }
+
+.platforms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; margin-top: 10px; }
+.platforms > div { padding-top: 22px; border-top: 1.5px solid var(--rule); }
+.platforms > div.pick { border-top: 4px solid var(--green); }
+.platforms b { font-family: var(--f-head); font-size: 40px; font-weight: 640; display: block; margin-bottom: 8px; }
+.platforms p { font-size: 23px; color: var(--graphite); }
+
+/* nav hint + progress */
+.progress {
+    position: fixed;
+    left: 0; bottom: 0;
+    height: 3px;
+    background: var(--green);
+    transition: width .2s ease;
+    z-index: 10;
+}
+
+:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+
+@media print {
+    @page { size: 1920px 1080px; margin: 0; }
+    html, body { overflow: visible; background: white; height: auto; }
+    .deck { position: static; transform: none !important; }
+    .slide { position: relative; opacity: 1; visibility: visible; page-break-after: always; width: 1920px; height: 1080px; }
+    .progress { display: none; }
+}
+</style>
+</head>
+<body>
+
+<main class="deck" id="deck">
+
+<!-- ===================== 1. COVER ===================== -->
+<section class="slide cover" data-sec="intro" data-quiet>
+    <div class="decor">
+        <svg viewBox="0 0 1920 1080" aria-hidden="true">
+            <g fill="none" stroke-width="1.5">
+                <circle class="draw" style="--len:2765" cx="1390" cy="500" r="440" stroke="#C9CED4" stroke-dasharray="6 8"/>
+                <circle class="draw" style="--len:1760;--d:.3s" cx="1390" cy="500" r="280" stroke="var(--ink)"/>
+                <circle class="draw" style="--len:754;--d:.6s" cx="1390" cy="500" r="120" stroke="var(--green)" stroke-width="2.5"/>
+                <line x1="900" y1="500" x2="1880" y2="500" stroke="#DCE0E4"/>
+                <line x1="1390" y1="40" x2="1390" y2="1000" stroke="#DCE0E4"/>
+                <line class="draw" style="--len:280;--d:1s" x1="1390" y1="500" x2="1508" y2="246" stroke="var(--orange)" stroke-width="2"/>
+            </g>
+            <g class="pop" style="--d:1.4s" font-family="Google Sans Code, monospace">
+                <circle cx="1508" cy="246" r="6" fill="var(--orange)"/>
+                <text x="1522" y="238" font-size="22" fill="#E8710A">r = 67</text>
+                <text x="1400" y="372" font-size="18" fill="#9AA1AA">git</text>
+                <text x="1400" y="212" font-size="18" fill="#9AA1AA">ide</text>
+                <text x="1745" y="800" font-size="18" fill="#9AA1AA">agent, os</text>
+            </g>
+            <g font-family="Google Sans Code, monospace" fill="#B9BFC6">
+                <text x="1390" y="514" font-size="40" fill="var(--green)" text-anchor="middle">&lt;/&gt;</text>
+                <text x="1000" y="300" font-size="28">{ }</text>
+                <text x="1000" y="150" font-size="28">#$!?</text>
+                <text x="960" y="990" font-size="24">#!/usr/bin/sh</text>
+                <text x="1730" y="250" font-size="22">0x1F</text>
+                <text x="1290" y="650" font-size="24">&amp;&amp;</text>
+            </g>
+            <g class="pop" style="--d:1.5s"><title>Git</title>
+                <circle cx="1494" cy="560" r="34" fill="#fff" stroke="var(--green)" stroke-width="2"/>
+                <image class="tool" style="--i:0" href="res/Git_icon.svg" x="1472" y="538" width="44" height="44"/>
+            </g>
+            <g class="pop" style="--d:1.6s"><title>GitHub</title>
+                <circle cx="1286" cy="440" r="34" fill="#fff" stroke="var(--green)" stroke-width="2"/>
+                <image class="tool" style="--i:1" href="res/Octicons-mark-github.svg" x="1264" y="418" width="44" height="44"/>
+            </g>
+            <g class="pop" style="--d:1.8s"><title>VS Code</title>
+                <circle cx="1250" cy="258" r="40" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>
+                <image class="tool" style="--i:2" href="res/Visual_Studio_Code_1.35_icon.svg" x="1225" y="233" width="50" height="50"/>
+            </g>
+            <g class="pop" style="--d:1.9s"><title>Cursor</title>
+                <circle cx="1127" cy="404" r="40" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>
+                <image class="tool" style="--i:3" href="res/cursor.svg" x="1102" y="379" width="50" height="50"/>
+            </g>
+            <g class="pop" style="--d:2.0s"><title>Antigravity</title>
+                <circle cx="1127" cy="596" r="40" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>
+                <image class="tool" style="--i:4" href="res/antigravity.png" x="1102" y="571" width="50" height="50"/>
+            </g>
+            <g class="pop" style="--d:2.1s"><title>IntelliJ IDEA</title>
+                <circle cx="1250" cy="742" r="40" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>
+                <image class="tool" style="--i:5" href="res/IntelliJ_IDEA_Icon.svg" x="1225" y="717" width="50" height="50"/>
+            </g>
+            <g class="pop" style="--d:2.2s"><title>Android Studio</title>
+                <circle cx="1439" cy="776" r="40" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>
+                <image class="tool" style="--i:6" href="res/android-studio.svg" x="1414" y="751" width="50" height="50"/>
+            </g>
+            <g class="pop" style="--d:2.3s"><title>Xcode</title>
+                <circle cx="1604" cy="680" r="40" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>
+                <image class="tool" style="--i:7" href="res/Xcode.svg" x="1579" y="655" width="50" height="50"/>
+            </g>
+            <g class="pop" style="--d:2.4s"><title>Vim</title>
+                <circle cx="1670" cy="500" r="40" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>
+                <image class="tool" style="--i:8" href="res/vimlogo.svg" x="1645" y="475" width="50" height="50"/>
+            </g>
+            <g class="pop" style="--d:2.5s"><title>GNU nano</title>
+                <circle cx="1604" cy="320" r="40" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>
+                <text class="tool" style="--i:9" x="1604" y="328" text-anchor="middle" font-family="Google Sans Code, monospace" font-size="22" font-weight="700" fill="#7c00cd">nano</text>
+            </g>
+            <g class="pop" style="--d:2.7s"><title>Claude Code</title>
+                <circle cx="1610" cy="119" r="40" fill="#fff" stroke="#B9BFC6" stroke-width="1.5"/>
+                <image class="tool" style="--i:10" href="res/claude-code.svg" x="1585" y="94" width="50" height="50"/>
+            </g>
+            <g class="pop" style="--d:2.8s"><title>OpenCode</title>
+                <circle cx="1803" cy="350" r="40" fill="#fff" stroke="#B9BFC6" stroke-width="1.5"/>
+                <image class="tool" style="--i:11" href="res/opencode-logo-dark.svg" x="1778" y="325" width="50" height="50"/>
+            </g>
+            <g class="pop" style="--d:2.9s"><title>Windows</title>
+                <circle cx="1803" cy="650" r="40" fill="#fff" stroke="#B9BFC6" stroke-width="1.5"/>
+                <image class="tool" style="--i:12" href="res/windows11.svg" x="1778" y="625" width="50" height="50"/>
+            </g>
+            <g class="pop" style="--d:3.0s"><title>macOS</title>
+                <circle cx="1610" cy="881" r="40" fill="#fff" stroke="#B9BFC6" stroke-width="1.5"/>
+                <image class="tool" style="--i:13" href="res/Finder_Icon_macOS_Tahoe.png" x="1585" y="856" width="50" height="50"/>
+            </g>
+            <g class="pop" style="--d:3.1s"><title>Linux</title>
+                <circle cx="1240" cy="913" r="40" fill="#fff" stroke="#B9BFC6" stroke-width="1.5"/>
+                <image class="tool" style="--i:14" href="res/Tux.svg" x="1215" y="888" width="50" height="50"/>
+            </g>
+        </svg>
+    </div>
+    <div class="content">
+        <div class="logos">
+            <img class="ftu" src="assets/ftu.png" alt="Trường Đại học Ngoại thương" data-i18n-alt="ui.alt_ftu">
+            <img class="ftds" src="assets/ftds.png" alt="Khoa Khoa học dữ liệu (FTDS)" data-i18n-alt="ui.alt_ftds">
+        </div>
+        <h1 data-i18n="s01.h1">Sinh hoạt chuyên môn K65</h1>
+        <p class="sub" data-i18n="s01.p1"><b>IDE</b>, lập trình cùng <b>LLM</b>, <b>Git + GitHub</b></p>
+        <div class="people">
+            <span>Trần Trung Nhân</span><code>@nhansp</code><small data-i18n="s01.role1">Trình bày chính</small>
+            <span>Nguyễn Anh Dũng</span><code>@Lan-0924</code><small data-i18n="s01.role2">Hỗ trợ</small>
+            <span>Vũ Đức Huy</span><code>@vdhwy</code><small data-i18n="s01.role3">Hỗ trợ</small>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 2. AGENDA ===================== -->
+<section class="slide" data-sec="intro" data-quiet>
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~</span>$ cat lo-trinh.txt</div>
+        <h2 data-i18n="s02.h2">50 phút, hai phần</h2>
+        <svg class="dia" viewBox="0 0 1620 470" width="1620" height="470" aria-label="Lộ trình buổi học">
+            <!-- dimension lines -->
+            <g stroke="var(--orange)" stroke-width="1.5" fill="none">
+                <line x1="0" y1="40" x2="648" y2="40"/>
+                <line x1="0" y1="24" x2="0" y2="110"/>
+                <line x1="648" y1="24" x2="648" y2="110"/>
+                <line x1="652" y1="40" x2="1620" y2="40"/>
+                <line x1="1620" y1="24" x2="1620" y2="110"/>
+                <path d="M0 40 l16 -7 v14 z M648 40 l-16 -7 v14 z M652 40 l16 -7 v14 z M1620 40 l-16 -7 v14 z" fill="var(--orange)" stroke="none"/>
+            </g>
+            <rect x="244" y="22" width="160" height="36" fill="#fff"/>
+            <text class="ann" x="324" y="48" text-anchor="middle" data-i18n="s02.text1">20 phút</text>
+            <rect x="1056" y="22" width="160" height="36" fill="#fff"/>
+            <text class="ann" x="1136" y="48" text-anchor="middle" data-i18n="s02.text2">30 phút</text>
+
+            <rect x="0" y="90" width="648" height="90" fill="#fff" stroke="var(--ink)" stroke-width="1.5"/>
+            <line x1="216" y1="90" x2="216" y2="180" stroke="var(--rule)"/>
+            <line x1="432" y1="90" x2="432" y2="180" stroke="var(--rule)"/>
+            <rect x="652" y="90" width="968" height="90" fill="var(--green-soft)" stroke="var(--green)" stroke-width="2"/>
+            <text class="lbl" x="108" y="145" text-anchor="middle" font-weight="600">IDE</text>
+            <text class="lbl" x="324" y="145" text-anchor="middle" font-weight="600">LLM</text>
+            <text class="lbl" x="540" y="145" text-anchor="middle" font-weight="600">Git</text>
+            <text class="lbl" x="1136" y="145" text-anchor="middle" font-weight="600" fill="var(--green)" data-i18n="s02.text3">Thực hành: PR đầu tiên</text>
+
+            <g class="sm">
+                <text x="0" y="240" data-i18n="s02.text4">Lý thuyết</text>
+                <text x="0" y="290" fill="var(--ink)" font-size="24" data-i18n="s02.text5">IDE là gì, chọn IDE nào,</text>
+                <text x="0" y="324" fill="var(--ink)" font-size="24" data-i18n="s02.text6">dùng LLM sao cho đúng,</text>
+                <text x="0" y="358" fill="var(--ink)" font-size="24" data-i18n="s02.text7">Git và GitHub</text>
+                <text x="652" y="240" data-i18n="s02.text8">Thực hành</text>
+                <text x="652" y="290" fill="var(--ink)" font-size="24" data-i18n="s02.text9">Gửi 1 pull request vào ftulabs.github.io,</text>
+                <text x="652" y="324" fill="var(--ink)" font-size="24" data-i18n="s02.text10">thêm phần giới thiệu bản thân.</text>
+                <text x="652" y="358" fill="var(--ink)" font-size="24" data-i18n="s02.text11">Windows, macOS hay Linux đều làm được.</text>
+            </g>
+        </svg>
+    </div>
+    <div class="egg" aria-hidden="true">
+        <svg viewBox="0 0 420 130" width="420" height="130">
+            <defs>
+                <clipPath id="egg-dome"><path d="M20 60 Q22 30 58 26 Q94 30 96 60 q-6 -6 -12.67 0 q-6 -6 -12.67 0 q-6 -6 -12.67 0 q-6 -6 -12.67 0 q-6 -6 -12.67 0 q-6 -6 -12.67 0 Z"/></clipPath>
+            </defs>
+            <!-- sea -->
+            <g fill="none" stroke="#C9CED4" stroke-width="1.5">
+                <path d="M0 62 q10 -6 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0"/>
+                <path d="M10 74 q10 -5 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0"/>
+            </g>
+            <!-- sun -->
+            <g stroke="var(--orange)" stroke-width="1.5" fill="none">
+                <circle cx="270" cy="22" r="9"/>
+                <path d="M270 5v5M270 34v5M253 22h5M282 22h5M258 10l3.5 3.5M278.5 30.5l3.5 3.5M282 10l-3.5 3.5M261.5 30.5l-3.5 3.5"/>
+            </g>
+            <!-- sand -->
+            <path d="M0 112 C 80 104, 160 118, 240 110 S 380 104, 420 112 L420 130 L0 130 Z" fill="#FCE3C8"/>
+            <path d="M0 112 C 80 104, 160 118, 240 110 S 380 104, 420 112" fill="none" stroke="var(--orange)" stroke-width="1.5"/>
+            <g fill="var(--orange)" opacity=".55"><circle cx="40" cy="120" r="1.2"/><circle cx="120" cy="122" r="1.2"/><circle cx="210" cy="118" r="1.2"/><circle cx="300" cy="121" r="1.2"/><circle cx="380" cy="119" r="1.2"/><circle cx="170" cy="125" r="1.2"/><circle cx="76" cy="124" r="1.2"/><circle cx="256" cy="125" r="1.2"/><circle cx="340" cy="126" r="1.2"/></g>
+            <!-- umbrella -->
+            <line x1="58" y1="26" x2="50" y2="114" stroke="var(--ink)" stroke-width="2"/>
+            <path d="M50 114 l-6 3 M50 114 l6 3" stroke="var(--orange)" stroke-width="1.5"/>
+            <g clip-path="url(#egg-dome)">
+                <rect x="18" y="20" width="80" height="44" fill="#fff"/>
+                <path d="M58 24 L20 64 L32.67 64 Z M58 24 L45.33 64 L58 64 Z M58 24 L70.67 64 L83.33 64 Z" fill="var(--red)"/>
+            </g>
+            <path d="M20 60 Q22 30 58 26 Q94 30 96 60 q-6 -6 -12.67 0 q-6 -6 -12.67 0 q-6 -6 -12.67 0 q-6 -6 -12.67 0 q-6 -6 -12.67 0 q-6 -6 -12.67 0 Z" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linejoin="round"/>
+            <circle cx="58" cy="24" r="2.5" fill="var(--red)"/>
+            <!-- confetti + music -->
+            <g>
+                <rect x="112" y="34" width="5" height="3" fill="var(--green)" transform="rotate(25 112 34)"/>
+                <rect x="150" y="22" width="5" height="3" fill="var(--orange)" transform="rotate(-30 150 22)"/>
+                <rect x="204" y="40" width="5" height="3" fill="var(--red)" transform="rotate(40 204 40)"/>
+                <rect x="132" y="48" width="4" height="3" fill="var(--orange)"/>
+                <rect x="226" y="28" width="4" height="3" fill="var(--green)" transform="rotate(15 226 28)"/>
+                <text x="176" y="40" font-size="16" fill="var(--orange)">♪</text>
+                <text x="236" y="58" font-size="14" fill="var(--green)">♫</text>
+            </g>
+            <!-- party: tux, claude code, finder -->
+            <image href="res/Tux.svg" x="96" y="60" width="40" height="48"/>
+            <image href="res/claude-code.svg" x="142" y="76" width="34" height="34"/>
+            <image href="res/Finder_Icon_macOS_Tahoe.png" x="184" y="74" width="34" height="34"/>
+            <!-- windows, alone, thinking -->
+            <image href="res/windows11.svg" x="330" y="84" width="24" height="24" opacity=".85"/>
+            <path d="M359 86 q3 5 0 8 q-3 -3 0 -8z" fill="#fff" stroke="var(--gray)" stroke-width="1"/>
+            <circle cx="349" cy="78" r="2" fill="#fff" stroke="var(--ink)" stroke-width="1"/>
+            <circle cx="355" cy="70" r="3" fill="#fff" stroke="var(--ink)" stroke-width="1"/>
+            <path d="M362 60 a8 8 0 0 1 -2 -15 a11 11 0 0 1 18 -9 a11 11 0 0 1 20 3 a9 9 0 0 1 4 17 a10 10 0 0 1 -19 5 a10 10 0 0 1 -21 -1 Z" fill="#fff" stroke="var(--ink)" stroke-width="1.2" stroke-linejoin="round"/>
+            <g class="think" fill="var(--ink)">
+                <circle cx="372" cy="50" r="2.2"/><circle cx="381" cy="50" r="2.2"/><circle cx="390" cy="50" r="2.2"/>
+            </g>
+        </svg>
+    </div>
+</section>
+
+<!-- ===================== 3. DIVIDER IDE ===================== -->
+<section class="slide divider" data-sec="ide" data-ring="ide">
+    <div class="content">
+        <div class="sec-no" data-i18n="s03.div1">Phần 1 / 4</div>
+        <h2>IDE</h2>
+        <div class="sec-list"><span>$ ls ide/</span><br>la-gi.md&nbsp;&nbsp;pho-bien.md&nbsp;&nbsp;cach-dung.md</div>
+    </div>
+</section>
+
+<!-- ===================== 4. IDE LÀ GÌ ===================== -->
+<section class="slide" data-sec="ide" data-quiet data-glyphs="echo c &gt; /proc/sysrq-trigger">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/ide</span>$ cat la-gi.md</div>
+        <div class="cols" style="grid-template-columns: 540px 1fr; gap: 56px;">
+            <div>
+                <h2 style="font-size:66px" data-i18n="s04.h2">IDE là gì?</h2>
+                <p class="lede" data-i18n="s04.p1"><b>I</b>ntegrated <b>D</b>evelopment <b>E</b>nvironment: môi trường phát triển tích hợp.</p>
+                <p class="muted" style="margin-top:28px; max-width:30ch" data-i18n="s04.p2">Gom mọi thứ cần để viết, chạy và debug code vào một cửa sổ, thay vì mở 5 công cụ riêng lẻ.</p>
+            </div>
+            <img class="shot" src="res/vscode.png" alt="VS Code với 4 file hello world (Rust, Go, Python, C++), Claude Code và terminal chạy rustc" data-i18n-alt="s04.alt">
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 5. IDE: GUI ===================== -->
+<section class="slide paged" data-sec="ide">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/ide</span>$ ls /usr/share/applications</div>
+        <div class="cols" style="grid-template-columns: 440px 1fr; gap: 64px;">
+            <div>
+                <h2 data-i18n="s05.h2">GUI-based</h2>
+                <p class="lede" style="font-size:30px" data-i18n="s05.p1">Có cửa sổ, menu, dùng chuột. Dễ làm quen, nhiều tính năng tích hợp sẵn.</p>
+                <div class="ide-icons">
+                    <button class="ico" data-page="0" title="VS Code" aria-label="VS Code"><img src="res/Visual_Studio_Code_1.35_icon.svg" alt=""></button>
+                    <button class="ico" data-page="0" title="Cursor" aria-label="Cursor"><img src="res/cursor.svg" alt=""></button>
+                    <button class="ico" data-page="1" title="Antigravity" aria-label="Antigravity"><img src="res/antigravity.png" alt=""></button>
+                    <button class="ico" data-page="1" title="Zed" aria-label="Zed"><img src="res/zed.png" alt=""></button>
+                    <button class="ico" data-page="2" title="IntelliJ IDEA" aria-label="IntelliJ IDEA"><img src="res/IntelliJ_IDEA_Icon.svg" alt=""></button>
+                    <button class="ico" data-page="2" title="Android Studio" aria-label="Android Studio"><img src="res/android-studio.svg" alt=""></button>
+                    <button class="ico" data-page="3" title="Xcode" aria-label="Xcode"><img src="res/Xcode.svg" alt=""></button>
+                    <span class="ico-more">…</span>
+                </div>
+            </div>
+            <div class="pages">
+                <div class="page">
+                    <figure class="shot-card">
+                        <img src="res/vscode.png" alt="VS Code">
+                        <figcaption><b>VS Code</b><span data-i18n="s05.c1">Microsoft. Miễn phí, nhiều extension</span></figcaption>
+                    </figure>
+                    <figure class="shot-card">
+                        <img src="res/shots/cursor.png" alt="Cursor">
+                        <figcaption><b>Cursor</b><span data-i18n="s05.c2">VS Code tích hợp AI sâu</span></figcaption>
+                    </figure>
+                </div>
+                <div class="page">
+                    <figure class="shot-card">
+                        <img src="res/shots/antigravity.png" alt="Antigravity">
+                        <figcaption><b>Antigravity</b><span data-i18n="s05.c7">Google. Giao việc cho nhiều agent cùng lúc</span></figcaption>
+                    </figure>
+                    <figure class="shot-card">
+                        <img src="res/shots/zed.png" alt="Zed">
+                        <figcaption><b>Zed</b><span data-i18n="s05.c6">Viết bằng Rust, mở file cực nhanh</span></figcaption>
+                    </figure>
+                </div>
+                <div class="page">
+                    <figure class="shot-card">
+                        <img src="res/shots/intellij.png" alt="IntelliJ IDEA">
+                        <figcaption><b>IntelliJ IDEA</b><span data-i18n="s05.c3">JetBrains. Free cho sinh viên</span></figcaption>
+                    </figure>
+                    <figure class="shot-card">
+                        <img src="res/shots/android-studio.png" alt="Android Studio">
+                        <figcaption><b>Android Studio</b><span data-i18n="s05.c4">Google. Làm app Android với Kotlin</span></figcaption>
+                    </figure>
+                </div>
+                <div class="page">
+                    <figure class="shot-card">
+                        <img src="res/shots/xcode.png" alt="Xcode">
+                        <figcaption><b>Xcode</b><span data-i18n="s05.c5">Apple. Chỉ chạy trên Mac</span></figcaption>
+                    </figure>
+                    <figure class="shot-card more-card">
+                        <div class="qv">
+                            <p class="small muted" data-i18n="s05.m1">Còn nữa:</p>
+                            <p class="more-list">Visual Studio, Eclipse, Sublime Text, Kate, Fleet, …</p>
+                            <p class="small muted" data-i18n="s05.m2">Chọn cái nào cũng được, quan trọng là dùng thạo.</p>
+                        </div>
+                    </figure>
+                </div>
+                <div class="pager" aria-hidden="true"><i></i><i></i><i></i><i></i><span></span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 5b. IDE: TUI ===================== -->
+<section class="slide paged" data-sec="ide">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/ide</span>$ ssh server -t vim</div>
+        <div class="cols" style="grid-template-columns: 440px 1fr; gap: 64px;">
+            <div>
+                <h2 data-i18n="s06tui.h2">TUI-based</h2>
+                <p class="lede" style="font-size:30px" data-i18n="s06tui.p1"><b>T</b>ext-based <b>U</b>ser <b>I</b>nterface: chạy ngay trong terminal, chỉ dùng bàn phím.</p>
+                <p class="small muted" style="margin-top:18px" data-i18n="s06tui.p2">Nhẹ, mở tức thì, dùng được qua SSH khi sửa file trên server.</p>
+                <div class="ide-icons">
+                    <button class="ico" data-page="0" title="Vim" aria-label="Vim"><img src="res/vimlogo.svg" alt=""></button>
+                    <button class="ico" data-page="0" title="Neovim" aria-label="Neovim"><img src="res/neovim.svg" alt=""></button>
+                    <button class="ico" data-page="1" title="nano" aria-label="nano"><span class="nano-t">nano</span></button>
+                    <button class="ico" data-page="1" title="Helix" aria-label="Helix"><img src="res/helix.svg" alt=""></button>
+                    <button class="ico" data-page="2" title="Emacs" aria-label="Emacs"><img src="res/emacs.svg" alt=""></button>
+                    <span class="ico-more">…</span>
+                </div>
+            </div>
+            <div class="pages">
+                <div class="page">
+                    <figure class="shot-card">
+                        <img src="res/shots/vim.png" alt="Vim">
+                        <figcaption><b>Vim</b><span data-i18n="s06tui.c1">Có sẵn trên hầu hết máy Linux, macOS</span></figcaption>
+                    </figure>
+                    <figure class="shot-card">
+                        <img src="res/shots/neovim.png" alt="Neovim">
+                        <figcaption><b>Neovim</b><span data-i18n="s06tui.c2">Vim hiện đại, cấu hình bằng Lua</span></figcaption>
+                    </figure>
+                </div>
+                <div class="page">
+                    <figure class="shot-card">
+                        <img src="res/shots/nano.png" alt="GNU nano">
+                        <figcaption><b>nano</b><span data-i18n="s06tui.c3">Dễ nhất: phím tắt hiện sẵn ở dưới</span></figcaption>
+                    </figure>
+                    <figure class="shot-card">
+                        <img src="res/shots/helix.png" alt="Helix">
+                        <figcaption><b>Helix</b><span data-i18n="s06tui.c4">Viết bằng Rust, có LSP sẵn</span></figcaption>
+                    </figure>
+                </div>
+                <div class="page">
+                    <figure class="shot-card">
+                        <img src="res/shots/emacs.png" alt="GNU Emacs">
+                        <figcaption><b>Emacs</b><span data-i18n="s06tui.c5">Hơn 40 tuổi, tuỳ biến bằng Lisp</span></figcaption>
+                    </figure>
+                    <figure class="shot-card quit-vim">
+                        <div class="qv">
+                            <p class="small muted" data-i18n="s06tui.qv1">Lỡ vào Vim mà không biết thoát?</p>
+                            <p class="qv-keys"><kbd>Esc</kbd> <code>:q!</code> <kbd>Enter</kbd></p>
+                            <p class="small muted" data-i18n="s06tui.qv2">Lưu rồi thoát: <code>:wq</code></p>
+                        </div>
+                    </figure>
+                </div>
+                <div class="pager" aria-hidden="true"><i></i><i></i><i></i><span></span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 6. CÁCH SỬ DỤNG ===================== -->
+<section class="slide" data-sec="ide">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/ide</span>$ cat cach-dung.md <span class="c">--vscode</span></div>
+        <h2 data-i18n="s06.h2">Dùng IDE: 7 shortcut đáng nhớ</h2>
+        <table class="spec" style="max-width:1320px">
+            <thead><tr><th data-i18n="s06.th1">Việc cần làm</th><th>Windows, Linux</th><th>macOS</th></tr></thead>
+            <tbody>
+                <tr><td>Command palette</td><td><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>P</kbd></td><td><kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>P</kbd></td></tr>
+                <tr><td data-i18n="s06.td1">Mở file theo tên</td><td><kbd>Ctrl</kbd> <kbd>P</kbd></td><td><kbd>⌘</kbd> <kbd>P</kbd></td></tr>
+                <tr><td data-i18n="s06.td2">Mở terminal</td><td><kbd>Ctrl</kbd> <kbd>`</kbd></td><td><kbd>⌃</kbd> <kbd>`</kbd></td></tr>
+                <tr><td data-i18n="s06.td3">Tìm trong cả dự án</td><td><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>F</kbd></td><td><kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>F</kbd></td></tr>
+                <tr><td>Run, debug</td><td><kbd>F5</kbd></td><td><kbd>F5</kbd></td></tr>
+                <tr><td>Go to definition</td><td><kbd>F12</kbd></td><td><kbd>F12</kbd></td></tr>
+                <tr><td>Multi-cursor</td><td><kbd>Alt</kbd> + click</td><td><kbd>⌥</kbd> + click</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- ===================== 7. DIVIDER LLM ===================== -->
+<section class="slide divider" data-sec="llm" data-ring="agent">
+    <div class="content">
+        <div class="sec-no" data-i18n="s07.div1">Phần 2 / 4</div>
+        <h2>Coding with<br>LLMs</h2>
+        <div class="sec-list"><span>$ ls llm/</span><br>hieu-ban-chat.md&nbsp;&nbsp;tiet-kiem.md&nbsp;&nbsp;agents.md</div>
+    </div>
+</section>
+
+<!-- ===================== 8. HIỂU BẢN CHẤT ===================== -->
+<section class="slide" data-sec="llm">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/llm</span>$ git diff thoi-quen.md</div>
+        <h2 data-i18n="s08.h2">Hiểu bản chất, đừng vứt hết cho LLM</h2>
+        <div class="cols c2-wide" style="grid-template-columns: 1fr 520px; gap: 70px;">
+            <div class="term">
+                <div class="t-head"><i></i><i></i><i></i><span>thoi-quen.md</span></div>
+<pre><span class="del" data-i18n="s08.span1">- Dán đề bài, copy code, nộp</span><span class="del" data-i18n="s08.span2">- Lỗi thì dán lỗi, lại copy tiếp</span><span class="del" data-i18n="s08.span3">- Không đọc code AI viết ra</span>
+<span class="add" data-i18n="s08.span4">+ Tự nghĩ hướng giải trước</span><span class="add" data-i18n="s08.span5">+ Hỏi LLM "tại sao", không chỉ "làm"</span><span class="add" data-i18n="s08.span6">+ Đọc từng dòng trước khi chấp nhận</span><span class="add" data-i18n="s08.span7">+ Tự sửa được khi AI sai</span></pre>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:36px; padding-top:10px">
+                <p class="callout" data-i18n="s08.p1">Bạn không review được code mà bạn không hiểu.</p>
+                <p class="small muted" data-i18n="s08.p2">LLM vẫn bịa API, viết code chạy được nhưng sai logic, hoặc để lộ lỗ hổng bảo mật. Người chịu trách nhiệm cho đoạn code là bạn, không phải mô hình.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 8b. VÍ DỤ THẬT: BẮT LỖI MODEL ===================== -->
+<section class="slide" data-sec="llm" data-quiet>
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/.claude/projects</span>$ grep -r "am i right" .</div>
+        <h2 data-i18n="s08ex.h2">Ví dụ thật: hiểu thì mới bắt được lỗi</h2>
+        <div class="cols c3 xcols">
+            <div>
+                <div class="xchg">
+                    <div class="x-you">WHY ARE YOU INVENTING 💩 READ THE DIRECTORY AGAIN ITS ALL THERE @reimager/</div>
+                    <div class="x-ai">That mismatch is the “inventing 💩”: I made a new keypair instead of using the one the pipeline already trusts.</div>
+                    <div class="x-src">ftu-fleet-refactor, 05/2026</div>
+                </div>
+                <p class="x-take" data-i18n="s08ex.t1">Biết repo có gì nên nhận ra ngay model tự tạo key mới.</p>
+            </div>
+            <div>
+                <div class="xchg">
+                    <div class="x-you">nah, dw, roomservice (…documented in the docs) will pull it. read the docs again and just adapt</div>
+                    <div class="x-ai">You&#x27;re right. My git ls-remote came back empty because I hit the wrong URL, not because the branches are absent. The docs are ground truth.</div>
+                    <div class="x-src">aosp-ndk-translation, 08/2026</div>
+                </div>
+                <p class="x-take" data-i18n="s08ex.t2">Biết tài liệu nói gì nên chỉ được model về đúng nguồn.</p>
+            </div>
+            <div>
+                <div class="xchg">
+                    <div class="x-you">check me out if my memory from the docs is right: … only when sys.boot.completed=1 … android will finally merge the update. am i right?</div>
+                    <div class="x-ai">Mostly right about when the merge happens. That isn&#x27;t why this boot died, though: first stage doesn&#x27;t mount /data at all.</div>
+                    <div class="x-src">aosp-diamondfish, 10/2026</div>
+                </div>
+                <p class="x-take" data-i18n="s08ex.t3">Tự đọc docs trước, rồi dùng model để kiểm tra lại mình hiểu đúng chưa.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 9. CÂN BẰNG TÀI NGUYÊN ===================== -->
+<section class="slide" data-sec="llm" data-quiet>
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/llm</span>$ cat tiet-kiem.md</div>
+        <h2 data-i18n="s09.h2">Cân bằng tài nguyên khi code</h2>
+        <div class="cols c3 xcols">
+            <div>
+                <svg class="dia" width="120" height="70" viewBox="0 0 120 70" aria-hidden="true">
+                    <circle cx="16" cy="36" r="10" fill="none" stroke="var(--green)" stroke-width="2"/>
+                    <circle cx="52" cy="36" r="18" fill="none" stroke="var(--ink)" stroke-width="2"/>
+                    <circle cx="96" cy="36" r="26" fill="none" stroke="var(--gray)" stroke-width="2" stroke-dasharray="4 4"/>
+                </svg>
+                <h3 data-i18n="s09.h31">Model nhỏ cho việc nhỏ</h3>
+                <p class="small" data-i18n="s09.p1">Đổi tên biến, viết regex, giải thích lỗi: model nhỏ, nhanh, rẻ là đủ. Để model lớn cho thiết kế, debug khó.</p>
+                <div class="xchg">
+                    <div class="x-you">spawn sonnet agents to use chrome in parallel for fetching screenshots</div>
+                    <div class="x-ai">Four agents are fetching screenshots in the background. Meanwhile I&#x27;ll capture the real Vim and nano.</div>
+                    <div class="x-src">shcd-k65-slides, 10/2026 (bộ slide này)</div>
+                </div>
+            </div>
+            <div>
+                <svg class="dia" width="120" height="70" viewBox="0 0 120 70" aria-hidden="true">
+                    <rect x="2" y="14" width="44" height="52" fill="none" stroke="var(--gray)" stroke-width="2" stroke-dasharray="4 4"/>
+                    <path d="M54 40 h22" stroke="var(--orange)" stroke-width="2"/>
+                    <path d="M76 40 l-8 -5 v10 z" fill="var(--orange)"/>
+                    <rect x="84" y="30" width="22" height="26" fill="none" stroke="var(--green)" stroke-width="2"/>
+                </svg>
+                <h3 data-i18n="s09.h32">Tối ưu input</h3>
+                <p class="small" data-i18n="s09.p2">Chỉ đưa file, đoạn log liên quan. Dán cả repo vào vừa tốn token vừa làm model rối. Mở cuộc hội thoại mới khi đổi việc.</p>
+                <div class="xchg">
+                    <div class="x-you">@/tmp/chat.txt i&#x27;ve been doing infra reshuffling on another model. read the chat and pick up.</div>
+                    <div class="x-ai">5.3 MB / 73k lines, far too large to read directly. Let me scout its structure first, then fan out over it.</div>
+                    <div class="x-src">ftu-fleet-refactor, 08/2026</div>
+                </div>
+            </div>
+            <div>
+                <svg class="dia" width="120" height="70" viewBox="0 0 120 70" aria-hidden="true">
+                    <circle cx="40" cy="38" r="28" fill="none" stroke="var(--ink)" stroke-width="2"/>
+                    <circle cx="40" cy="38" r="15" fill="none" stroke="var(--ink)" stroke-width="2"/>
+                    <circle cx="40" cy="38" r="4" fill="var(--red)"/>
+                    <path d="M40 38 L104 10" stroke="var(--orange)" stroke-width="2"/>
+                </svg>
+                <h3 data-i18n="s09.h33">Theo dõi usage</h3>
+                <p class="small" data-i18n="s09.p3">Biết mình còn bao nhiêu lượt. Chia việc thành từng bước có commit, hết quota giữa chừng cũng không mất gì.</p>
+                <div class="xchg">
+                    <div class="x-you">stop here a bit. what do we have left, because 2 hours until usage reset. aint wasting usage</div>
+                    <div class="x-ai">I can&#x27;t see your account usage from here. I&#x27;ll order the work so every step ends in a commit plus a notes file.</div>
+                    <div class="x-src">aosp-greatlte, 10/2026</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 9b. SỐ LIỆU THẬT ===================== -->
+<section class="slide" data-sec="llm" data-quiet>
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~</span>$ python3 dem-token.py ~/.claude/projects</div>
+        <h2 data-i18n="s09st.h2">Số liệu thật: 5 tháng dùng Claude Code</h2>
+        <div class="st-wrap">
+                <h3 data-i18n="s09st.h3">Lượt gọi model, theo nơi chạy</h3>
+                <svg class="dia st-chart" viewBox="0 0 1060 220" width="1060" height="220" role="img" aria-label="Phiên chính: Opus 99%, Fable 0,9%, Sonnet 0,1%. Subagent: Opus 81,9%, Sonnet và Haiku 15,3%, Fable 2,8%.">
+                <text x="0" y="58" class="st-lbl" data-i18n="s09st.b1">Phiên chính</text>
+                <rect x="200.0" y="20" width="849.4" height="56" rx="4" fill="#59606A"><title>Opus: 99.0%</title></rect>
+                <text x="214.0" y="56" class="st-in" fill="#fff">Opus 99%</text>
+                <rect x="1051.4" y="20" width="1.0" height="56" rx="4" fill="#E8710A"><title>Sonnet + Haiku: 0.1%</title></rect>
+                <rect x="1054.4" y="20" width="5.7" height="56" rx="4" fill="#C9CED4"><title>Fable: 0.9%</title></rect>
+                <text x="0" y="158" class="st-lbl" data-i18n="s09st.b2">Subagent</text>
+                <rect x="200.0" y="120" width="702.3" height="56" rx="4" fill="#59606A"><title>Opus: 81.9%</title></rect>
+                <text x="214.0" y="156" class="st-in" fill="#fff">Opus 81,9%</text>
+                <rect x="904.3" y="120" width="129.6" height="56" rx="4" fill="#E8710A"><title>Sonnet + Haiku: 15.3%</title></rect>
+                
+                <rect x="1035.9" y="120" width="22.1" height="56" rx="4" fill="#C9CED4"><title>Fable: 2.8%</title></rect>
+                </svg>
+                <div class="st-legend">
+                    <span><i style="background:#59606A"></i>Opus</span>
+                    <span><i style="background:#E8710A"></i>Sonnet + Haiku <em data-i18n="s09st.l1">subagent 15,3%</em></span>
+                    <span><i style="background:#C9CED4"></i>Fable <em data-i18n="s09st.l2">subagent 2,8%</em></span>
+                </div>
+            <p class="lede st-note" data-i18n="s09st.p1"><b class="o">98%</b> input token là <b>cache read</b>: phần lặp lại như system prompt, file đã đọc chỉ tính khoảng 1/10 giá.</p>
+            <p class="small" data-i18n="s09st.p3">Việc chính chạy Opus. Việc nhỏ, chạy song song (tìm screenshot, đọc log) giao cho subagent dùng <b class="o">Sonnet, Haiku</b>. Output chỉ chiếm 0,24% tổng token.</p>
+            <p class="small muted" data-i18n="s09st.p4">16/05 tới 30/10/2026: 29 phiên chính, 1.311 lượt subagent, 3.946 prompt.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 9c. BAO NHIÊU TIỀN ===================== -->
+<section class="slide" data-sec="llm" data-quiet>
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~</span>$ claude --resume 98b007a8 | dem-tien</div>
+        <h2 data-i18n="s09c.h2">Bộ slide này tốn bao nhiêu?</h2>
+        <div class="cols" style="grid-template-columns: 1000px 1fr; gap: 64px;">
+            <div>
+                <h3 data-i18n="s09c.h3">Nếu trả theo giá API</h3>
+                <svg class="dia st-chart" viewBox="0 0 1060 360" width="1000" height="340" role="img" aria-label="Chi phí phiên làm slide này nếu trả theo API">
+                    <line x1="759.0" y1="10" x2="759.0" y2="350" stroke="var(--green)" stroke-width="2" stroke-dasharray="6 6"/>
+                    <text x="767.0" y="352" class="st-ref" data-i18n="s09c.pro">Pro: $20/tháng</text>
+                    <text x="0" y="62" class="st-lbl" data-i18n="s09c.r1">Tất cả Opus 5.5</text><rect x="400" y="30" width="560.0" height="48" rx="4" fill="#59606A"><title>Tất cả Opus 5.5: $31.19</title></rect><text x="972.0" y="63" class="st-val">$31.19</text><text x="0" y="144" class="st-lbl" data-i18n="s09c.r2">Thực tế: Opus + subagent Sonnet</text><rect x="400" y="112" width="520.6" height="48" rx="4" fill="#E8710A"><title>Thực tế: Opus + subagent Sonnet: $29.00</title></rect><text x="932.6" y="145" class="st-val o">$29.00</text><text x="0" y="226" class="st-lbl" data-i18n="s09c.r3">Tất cả Sonnet 5.5</text><rect x="400" y="194" width="280.0" height="48" rx="4" fill="#59606A"><title>Tất cả Sonnet 5.5: $15.60</title></rect><text x="692.0" y="227" class="st-val">$15.60</text><text x="0" y="308" class="st-lbl" data-i18n="s09c.r4">Tất cả Haiku 5.5</text><rect x="400" y="276" width="101.0" height="48" rx="4" fill="#59606A"><title>Tất cả Haiku 5.5: $5.63</title></rect><text x="513.0" y="309" class="st-val">$5.63</text>
+                </svg>
+                <p class="small muted" style="margin-top:14px" data-i18n="s09c.note">Chính phiên này: 308 lượt gọi model, 71 triệu token. Giá API trên platform.claude.com, 30/10/2026.</p>
+            </div>
+            <div>
+                <h3 data-i18n="s09c.h3b">Gói tháng</h3>
+                <ul class="price-list">
+                    <li><b>Claude Pro</b><span data-i18n="s09c.pro2">$20/tháng, có Claude Code</span></li>
+                    <li><b>Claude Max</b><span data-i18n="s09c.max">$100 hoặc $200/tháng</span></li>
+                </ul>
+                <h3 style="margin-top:22px" data-i18n="s09c.h3c">Ưu đãi sinh viên</h3>
+                <ul class="price-list">
+                    <li><b>GitHub Copilot</b><span data-i18n="s09c.s1">Miễn phí qua Student Developer Pack</span></li>
+                    <li><b>Google AI Plus</b><span data-i18n="s09c.s2">Miễn phí 1 năm, đăng ký trước 31/12/2026</span></li>
+                    <li><b>JetBrains</b><span data-i18n="s09c.s3">Student Pack: 10 IDE miễn phí</span></li>
+                    <li><b>Claude</b><span data-i18n="s09c.s4">Claude for Education: trường phải đăng ký</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 10. PROMPT VÍ DỤ ===================== -->
+<section class="slide" data-sec="llm" data-quiet>
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/llm</span>$ diff prompt-1.txt prompt-2.txt</div>
+        <h2 data-i18n="s10.h2">Prompt: đủ ngữ cảnh, rõ mục tiêu</h2>
+        <div class="cols c2 xcols" style="gap:56px">
+            <div>
+                <p class="small g x-head" data-i18n="s10.p1">Ngắn, nhưng code đã nằm sẵn trong ngữ cảnh</p>
+                <div class="xchg">
+                    <div class="x-you">check xem con sai o dau</div>
+                    <div class="x-ai"><code>L</code> và <code>R</code> tính đúng rồi. Sai ở <b>dòng 17</b>: <code>if (l[i] == r[i])</code> chỉ nhận đỉnh khi hai dốc bằng nhau. Sửa: <code>ans = max(ans, min(l[i], r[i]));</code> … Bài học: <b>sample qua chưa chắc đúng.</b></div>
+                    <div class="x-src">ftu-knights, 10/2026</div>
+                </div>
+                <p class="x-take" data-i18n="s10.t1">Mở chat mới mà hỏi đúng câu này thì model chỉ đoán được. Có file code đi kèm thì ngắn vẫn đủ.</p>
+            </div>
+            <div>
+                <p class="small g x-head" data-i18n="s10.p3">Việc nhiều bước: đánh số mục tiêu</p>
+                <div class="xchg">
+                    <div class="x-you">still the same error. <span class="hl">goal:</span> <span class="hl">1.</span> actually wire up the discussed partition scheme, <span class="hl">dont half bake it</span>. <span class="hl">2.</span> see how nouveau makes it wait <span class="hl">60 secs</span> before continuing. <span class="hl">3.</span> see why after loading uevents, it takes <span class="hl">2-5 secs</span> freezed before actually continuing.</div>
+                    <div class="x-ai">Still failing at the same gate, so my module-CRC theory wasn&#x27;t the (only) cause. Let me get hard evidence before another guess.</div>
+                    <div class="x-src">aosp-ndk-translation, 08/2026</div>
+                </div>
+                <p class="x-take" data-i18n="s10.t2">Mục tiêu đánh số, ràng buộc rõ, có số đo: model biết phải làm gì và khi nào là xong.</p>
+            </div>
+        </div>
+        <p class="chips"><span data-i18n="s10.c0">Checklist:</span> <b data-i18n="s10.c1">mục tiêu</b> <b data-i18n="s10.c2">ngữ cảnh</b> <b data-i18n="s10.c3">ràng buộc</b> <b data-i18n="s10.c4">kết quả mong muốn</b></p>
+    </div>
+</section>
+
+<!-- ===================== 11. CODING AGENTS ===================== -->
+<section class="slide" data-sec="llm" data-quiet>
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/llm</span>$ cat agents.md</div>
+        <h2>Coding agents</h2>
+        <div class="cols c2" style="grid-template-columns: 1fr 520px; gap: 60px; flex: none">
+            <div>
+                <p class="small muted" style="max-width:36ch; margin-bottom:26px" data-i18n="s11.p1">Không chỉ chat: agent tự đọc repo, edit file, chạy lệnh trong terminal, rồi chờ bạn duyệt.</p>
+                <div class="agents">
+                    <div><b>Claude Code</b><span>Anthropic</span></div>
+                    <div><b>Codex</b><span>OpenAI</span></div>
+                    <div data-i18n="s11.div1"><b>OpenCode</b><span>Mã nguồn mở, chọn được nhiều model</span></div>
+                    <div><b>Gemini CLI</b><span>Google</span></div>
+                    <div data-i18n="s11.div2"><b>GitHub Copilot</b><span>Chế độ agent trong VS Code</span></div>
+                    <div data-i18n="s11.div3"><b>Antigravity</b><span>Google. IDE agent-first, CLI là <code>agy</code></span></div>
+                </div>
+            </div>
+            <svg class="dia" viewBox="0 0 640 600" width="520" height="488" aria-label="Vòng lặp làm việc của một coding agent">
+                <circle cx="320" cy="300" r="200" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+                <circle cx="320" cy="300" r="250" fill="none" stroke="var(--rule)" stroke-dasharray="5 7"/>
+                <line x1="300" y1="300" x2="340" y2="300" stroke="var(--gray)"/><line x1="320" y1="280" x2="320" y2="320" stroke="var(--gray)"/>
+                <text x="320" y="352" text-anchor="middle" class="mono sm">loop</text>
+                <!-- nodes at -90, -18, 54, 126, 198 deg -->
+                <g stroke-width="2" fill="#fff">
+                    <circle cx="320" cy="100" r="16" stroke="var(--ink)"/>
+                    <circle cx="510" cy="238" r="16" stroke="var(--ink)"/>
+                    <circle cx="438" cy="462" r="16" stroke="var(--ink)"/>
+                    <circle cx="202" cy="462" r="16" stroke="var(--ink)"/>
+                    <circle cx="130" cy="238" r="16" stroke="var(--green)" fill="var(--green)"/>
+                </g>
+                <g class="mono" font-size="17" text-anchor="middle">
+                    <text x="320" y="106">1</text><text x="510" y="244">2</text><text x="438" y="468">3</text><text x="202" y="468">4</text><text x="130" y="244" fill="#fff">5</text>
+                </g>
+                <g class="lbl" font-size="23">
+                    <text x="320" y="66" text-anchor="middle" data-i18n="s11.text1">Đọc code, ngữ cảnh</text>
+                    <text x="540" y="244">Plan</text>
+                    <text x="460" y="510">Edit file</text>
+                    <text x="180" y="510" text-anchor="end" data-i18n="s11.text2">Chạy lệnh, test</text>
+                    <text x="100" y="230" text-anchor="end" fill="var(--green)" font-weight="600" data-i18n="s11.text3">Bạn</text>
+                    <text x="100" y="258" text-anchor="end" fill="var(--green)" font-weight="600" data-i18n="s11.text4">duyệt</text>
+                </g>
+            </svg>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 11b. KẾT LLM ===================== -->
+<section class="slide" data-sec="llm" data-quiet>
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~</span>$ claude "hi!"</div>
+        <div class="cols" style="grid-template-columns: 1fr 520px; gap: 64px; align-items: center;">
+            <figure class="desk-shot">
+                <img src="res/hi.png" alt="Màn hình: Claude Code trong terminal chào “hi!” bên cạnh Chrome đang mở bộ slide này" data-i18n-alt="s11b.alt">
+                <figcaption class="small muted" data-i18n="s11b.cap">Claude Code đang làm bộ slide này, ngay trên máy mình.</figcaption>
+            </figure>
+            <div>
+                <p class="genie" data-i18n="s11b.q">LLM là bạn đồng hành mạnh mẽ, chứ không phải là thần đèn.</p>
+                <p class="small muted" style="margin-top:28px" data-i18n="s11b.p">Bạn vẫn là người hiểu vấn đề, đặt mục tiêu và chịu trách nhiệm cho code.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 12. DIVIDER GIT ===================== -->
+<section class="slide divider" data-sec="git" data-ring="git">
+    <div class="content">
+        <div class="sec-no" data-i18n="s12.div1">Phần 3 / 4</div>
+        <h2>Git + GitHub</h2>
+        <div class="sec-list sec-log"><span>ftulabs.github.io$ git log --oneline -4</span><br><span class="o">a0643bf</span> site: Auto-stamp asset cache versions<br><span class="o">40d52b6</span> Merge pull request #21 from ftulabs/feature/k65-members<br><span class="o">8f2c9c5</span> feature: Add K65 members page and announcement banner<br><span class="o">aed5b5e</span> course: Add lectures 2, 4, 5 to Introduction to AI</div>
+    </div>
+</section>
+
+<!-- ===================== 13. GIT LÀ GÌ ===================== -->
+<section class="slide" data-sec="git">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/git</span>$ git --help</div>
+        <h2 data-i18n="s13.h2">Git là gì?</h2>
+        <div class="cols" style="grid-template-columns: 1fr 700px; gap: 64px">
+            <div>
+                <p class="lede" data-i18n="s13.p1"><b>Distributed version control system</b>: ghi lại lịch sử thay đổi của từng file trong dự án.</p>
+                <ul class="plain" style="margin-top:20px">
+                    <li data-i18n="s13.li1">Linus Torvalds viết năm 2005 để quản lý source code của Linux kernel</li>
+                    <li data-i18n="s13.li2">Mỗi lần lưu là một <b>snapshot</b> toàn bộ dự án</li>
+                    <li data-i18n="s13.li3">Mỗi máy giữ đủ lịch sử, không cần mạng vẫn làm việc được</li>
+                </ul>
+                <svg class="dia" viewBox="0 60 520 240" width="440" height="200" style="margin-top:8px" aria-label="Các snapshot nối tiếp nhau">
+                <g fill="none" stroke-width="2">
+                    <line x1="60" y1="210" x2="460" y2="210" stroke="var(--ink)"/>
+                    <circle cx="60" cy="210" r="26" stroke="var(--ink)" fill="#fff"/>
+                    <circle cx="200" cy="210" r="26" stroke="var(--ink)" fill="#fff"/>
+                    <circle cx="340" cy="210" r="26" stroke="var(--ink)" fill="#fff"/>
+                    <circle cx="460" cy="210" r="26" stroke="var(--green)" fill="var(--green-soft)" stroke-width="3"/>
+                </g>
+                <g class="mono sm" text-anchor="middle">
+                    <text x="60" y="270">v1</text><text x="200" y="270">v2</text><text x="340" y="270">v3</text><text x="460" y="270" fill="var(--green)" data-i18n="s13.text1">hiện tại</text>
+                </g>
+                <path d="M340 150 Q 200 80 70 160" fill="none" stroke="var(--orange)" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <path d="M70 160 l4 -14 l9 11 z" fill="var(--orange)"/>
+                <text class="ann" x="205" y="92" text-anchor="middle">git checkout v1</text>
+            </svg>
+            </div>
+            <figure class="torv">
+                <img class="torv-shot" src="res/shots/torvalds.png" alt="Trang GitHub của Linus Torvalds">
+                <img class="torv-git" src="res/Git_icon.svg" alt="Git">
+                <figcaption class="small muted">github.com/torvalds</figcaption>
+            </figure>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 14. TẠI SAO ===================== -->
+<section class="slide" data-sec="git">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/git</span>$ ls ~/Documents/bao-cao/</div>
+        <h2 data-i18n="s14.h2">Tại sao cần Git?</h2>
+        <div class="cols" style="grid-template-columns: 1fr 1fr; gap: 72px">
+            <div>
+                <p class="small r x-head" data-i18n="s14.no">Không có Git</p>
+                <svg class="dia" viewBox="0 0 620 470" width="620" height="470" aria-label="Năm file báo cáo final khác nhau">
+                <g transform="translate(30 40) rotate(-4 48.0 60.0)">
+                    <path d="M0 0 H69 L96 27 V120 H0 Z" fill="#fff" stroke="var(--ink)" stroke-width="2"/>
+                    <path d="M69 0 V27 H96" fill="none" stroke="var(--ink)" stroke-width="2"/>
+                    <rect x="0" y="66" width="96" height="26" fill="#2B579A"/>
+                    <text x="48.0" y="85" text-anchor="middle" fill="#fff" class="mono" font-size="15" font-weight="700">DOCX</text>
+                    <text x="48.0" y="146" text-anchor="middle" class="mono fname struck">bao_cao</text>
+                </g>
+                <g transform="translate(230 20) rotate(3 48.0 60.0)">
+                    <path d="M0 0 H69 L96 27 V120 H0 Z" fill="#fff" stroke="var(--ink)" stroke-width="2"/>
+                    <path d="M69 0 V27 H96" fill="none" stroke="var(--ink)" stroke-width="2"/>
+                    <rect x="0" y="66" width="96" height="26" fill="#2B579A"/>
+                    <text x="48.0" y="85" text-anchor="middle" fill="#fff" class="mono" font-size="15" font-weight="700">DOCX</text>
+                    <text x="48.0" y="146" text-anchor="middle" class="mono fname struck">bao_cao_final</text>
+                </g>
+                <g transform="translate(430 50) rotate(-2 48.0 60.0)">
+                    <path d="M0 0 H69 L96 27 V120 H0 Z" fill="#fff" stroke="var(--ink)" stroke-width="2"/>
+                    <path d="M69 0 V27 H96" fill="none" stroke="var(--ink)" stroke-width="2"/>
+                    <rect x="0" y="66" width="96" height="26" fill="#2B579A"/>
+                    <text x="48.0" y="85" text-anchor="middle" fill="#fff" class="mono" font-size="15" font-weight="700">DOCX</text>
+                    <text x="48.0" y="146" text-anchor="middle" class="mono fname struck">…_final_v2</text>
+                </g>
+                <g transform="translate(110 250) rotate(4 48.0 60.0)">
+                    <path d="M0 0 H69 L96 27 V120 H0 Z" fill="#fff" stroke="var(--ink)" stroke-width="2"/>
+                    <path d="M69 0 V27 H96" fill="none" stroke="var(--ink)" stroke-width="2"/>
+                    <rect x="0" y="66" width="96" height="26" fill="#2B579A"/>
+                    <text x="48.0" y="85" text-anchor="middle" fill="#fff" class="mono" font-size="15" font-weight="700">DOCX</text>
+                    <text x="48.0" y="146" text-anchor="middle" class="mono fname struck">…_v2_sua_cua_Dung</text>
+                </g>
+                <g transform="translate(360 270) rotate(-5 48.0 60.0)">
+                    <path d="M0 0 H69 L96 27 V120 H0 Z" fill="#fff" stroke="var(--ink)" stroke-width="2"/>
+                    <path d="M69 0 V27 H96" fill="none" stroke="var(--ink)" stroke-width="2"/>
+                    <rect x="0" y="66" width="96" height="26" fill="#2B579A"/>
+                    <text x="48.0" y="85" text-anchor="middle" fill="#fff" class="mono" font-size="15" font-weight="700">DOCX</text>
+                    <text x="48.0" y="146" text-anchor="middle" class="mono fname struck">…_THAT_SU_final</text>
+                </g>
+                </svg>
+            </div>
+            <div>
+                <p class="small g x-head" data-i18n="s14.yes">Có Git</p>
+                <div class="why-git">
+                    <svg class="dia" viewBox="0 0 130 170" width="130" height="170" aria-hidden="true">
+                <g transform="translate(10 10) rotate(0 50.0 62.5)">
+                    <path d="M0 0 H72 L100 28 V125 H0 Z" fill="#fff" stroke="var(--ink)" stroke-width="2"/>
+                    <path d="M72 0 V28 H100" fill="none" stroke="var(--ink)" stroke-width="2"/>
+                    <rect x="0" y="69" width="100" height="28" fill="#2B579A"/>
+                    <text x="50.0" y="89" text-anchor="middle" fill="#fff" class="mono" font-size="15" font-weight="700">DOCX</text>
+                    <text x="50.0" y="151" text-anchor="middle" class="mono fname">bao_cao.docx</text>
+                </g>
+                    </svg>
+                    <div class="term" style="font-size:22px">
+                        <div class="t-head"><i></i><i></i><i></i><span>git log --oneline bao_cao.docx</span></div>
+<pre><span class="hl">e91c2a4</span> <span data-i18n="s14.c1">sửa theo góp ý của Dũng</span>
+<span class="hl">7b3f0d1</span> <span data-i18n="s14.c2">thêm phần kết luận</span>
+<span class="hl">c40a9e8</span> <span data-i18n="s14.c3">viết lại phần mở đầu</span>
+<span class="hl">5d2e7b6</span> <span data-i18n="s14.c4">thêm bảng số liệu</span>
+<span class="hl">1a8f3c0</span> <span data-i18n="s14.c5">bản nháp đầu tiên</span></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p class="chips why-chips"><b data-i18n="s14.li1">Lịch sử: ai sửa gì, lúc nào, vì sao</b> <b data-i18n="s14.li2">Quay lại bản cũ khi lỡ tay</b> <b data-i18n="s14.li3">Làm nhóm không đè lên nhau</b> <b data-i18n="s14.li4">Thử nghiệm an toàn trên branch</b></p>
+    </div>
+</section>
+
+<!-- ===================== 15. COMMIT + DIFF ===================== -->
+<section class="slide" data-sec="git">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/git</span>$ git show</div>
+        <h2 data-i18n="s15.h2">commit và diff</h2>
+        <div class="cols c2" style="grid-template-columns: 600px 1fr; gap: 64px">
+            <div>
+                <h3><code class="g">commit</code></h3>
+                <p class="small" style="margin-bottom:34px" data-i18n="s15.p1">Một lần “lưu” vào lịch sử: snapshot + tác giả + thời gian + lời nhắn. Mỗi commit có một mã hash riêng.</p>
+                <h3><code class="o">diff</code></h3>
+                <p class="small" data-i18n="s15.p2">Phần khác nhau giữa hai phiên bản. Dòng <span class="g">+</span> được thêm, dòng <span class="r">−</span> bị xoá.</p>
+            </div>
+            <div class="term" style="font-size:23px">
+                <div class="t-head"><i></i><i></i><i></i><span>git show</span></div>
+<pre><span class="hl">commit 3f9c2ab</span>
+Author: Nguyen Van A &lt;a@ftu.edu.vn&gt;
+Date:   Thu Oct 30 14:05 2026
+
+    fix: Update K65 bio
+
+<span class="c">--- a/k65/members/nguyenvana.json</span>
+<span class="c">+++ b/k65/members/nguyenvana.json</span>
+<span class="c">@@ -3,3 +3,3 @@</span>
+   "github": "nguyenvana",
+<span class="del" data-i18n="s15.d1">-  "bio": "Mình thích code.",</span><span class="add" data-i18n="s15.a1">+  "bio": "Mình thích code và cầu lông.",</span>   "role": "K65, FTDS"</pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 16. BRANCH + TAG ===================== -->
+<section class="slide" data-sec="git" data-quiet>
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/git</span>$ git log --graph --all</div>
+        <h2 data-i18n="s16.h2">branch và tag</h2>
+        <svg class="dia sweep" viewBox="0 0 1620 400" width="1620" height="400" aria-label="Sơ đồ nhánh main, nhánh feature và tag v1.0">
+            <g stroke-width="3" fill="none">
+                <line x1="80" y1="130" x2="1100" y2="130" stroke="var(--ink)"/>
+                <path d="M520 130 C 600 130, 600 290, 680 290 L 1100 290" stroke="var(--orange)"/>
+            </g>
+            <g stroke-width="3" fill="#fff">
+                <circle cx="80" cy="130" r="22" stroke="var(--ink)"/>
+                <circle cx="300" cy="130" r="22" stroke="var(--ink)"/>
+                <circle cx="520" cy="130" r="22" stroke="var(--ink)"/>
+                <circle cx="820" cy="130" r="22" stroke="var(--ink)"/>
+                <circle cx="1100" cy="130" r="22" stroke="var(--ink)"/>
+                <circle cx="760" cy="290" r="22" stroke="var(--orange)"/>
+                <circle cx="1000" cy="290" r="22" stroke="var(--orange)" fill="var(--orange-soft)"/>
+            </g>
+            <g class="mono sm" text-anchor="middle">
+                <text x="80" y="186">a1b2</text><text x="300" y="186">c3d4</text><text x="520" y="186">e5f6</text>
+                <text x="820" y="186">7a8b</text><text x="1100" y="186">9c0d</text>
+                <text x="760" y="346">f1e2</text><text x="1000" y="346">d3c4</text>
+            </g>
+            <!-- tag -->
+            <g>
+                <line x1="300" y1="108" x2="300" y2="50" stroke="var(--red)" stroke-width="2"/>
+                <path d="M300 22 h96 l14 14 l-14 14 h-96 z" fill="var(--red-soft)" stroke="var(--red)" stroke-width="2"/>
+                <text x="340" y="44" class="mono" font-size="20" fill="var(--red)" text-anchor="middle">v1.0</text>
+            </g>
+            <!-- branch pointers -->
+            <g class="mono" font-size="22">
+                <rect x="1150" y="112" width="96" height="38" rx="19" fill="none" stroke="var(--ink)" stroke-width="2"/>
+                <text x="1198" y="138" text-anchor="middle">main</text>
+                <rect x="1150" y="271" width="230" height="38" rx="19" fill="none" stroke="var(--orange)" stroke-width="2"/>
+                <text x="1265" y="297" text-anchor="middle" fill="var(--orange)">feature/login</text>
+                <text x="1400" y="297" fill="var(--green)">← HEAD</text>
+            </g>
+        </svg>
+        <div class="cols c2" style="flex:0; gap:64px; margin-top:6px">
+            <p class="small" data-i18n="s16.p1"><code class="o">branch</code> là một hướng phát triển riêng. Làm feature mới trên branch, <code>main</code> vẫn an toàn.</p>
+            <p class="small" data-i18n="s16.p2"><code class="r">tag</code> là nhãn cố định gắn vào một commit, thường đánh dấu bản release như <code>v1.0</code>.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 17. REMOTE, PUSH, PULL ===================== -->
+<section class="slide" data-sec="git" data-quiet>
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/git</span>$ git remote -v</div>
+        <h2>remote, push, pull</h2>
+        <svg class="dia sweep" viewBox="0 0 1620 460" width="1620" height="460" aria-label="Luồng dữ liệu từ thư mục làm việc tới GitHub">
+            <g fill="#fff" stroke-width="2">
+                <rect x="0" y="80" width="300" height="170" stroke="var(--ink)"/>
+                <rect x="420" y="80" width="300" height="170" stroke="var(--ink)"/>
+                <rect x="840" y="80" width="300" height="170" stroke="var(--ink)"/>
+                <rect x="1300" y="80" width="320" height="170" stroke="var(--green)" stroke-width="3"/>
+            </g>
+            <line x1="1220" y1="20" x2="1220" y2="440" stroke="var(--gray)" stroke-dasharray="8 8" stroke-width="1.5"/>
+            <text class="sm" x="1200" y="430" text-anchor="end" data-i18n="s17.text1">máy của bạn</text>
+            <text class="sm" x="1240" y="430">Internet</text>
+            <g class="lbl" text-anchor="middle" font-weight="600">
+                <text x="150" y="160">Working directory</text>
+                <text x="570" y="160">Staging area</text>
+                <text x="990" y="160">Local repo</text>
+                <text x="1460" y="160" fill="var(--green)">GitHub</text>
+            </g>
+            <g class="mono sm" text-anchor="middle">
+                <text x="150" y="196" data-i18n="s17.text2">file bạn đang sửa</text>
+                <text x="570" y="196" data-i18n="s17.text3">chờ commit</text>
+                <text x="990" y="196">.git/</text>
+                <text x="1460" y="196">remote: origin</text>
+            </g>
+            <g stroke="var(--orange)" stroke-width="2" fill="none">
+                <line x1="304" y1="130" x2="410" y2="130"/>
+                <line x1="724" y1="130" x2="830" y2="130"/>
+                <line x1="1144" y1="120" x2="1290" y2="120"/>
+                <line x1="1296" y1="210" x2="1150" y2="210" stroke="var(--green)"/>
+                <path d="M150 254 V 330 H 1460 V 254" stroke="var(--green)" stroke-dasharray="7 6"/>
+            </g>
+            <g fill="var(--orange)">
+                <path d="M416 130 l-14 -7 v14 z"/><path d="M836 130 l-14 -7 v14 z"/><path d="M1296 120 l-14 -7 v14 z"/>
+                <path d="M1144 210 l14 -7 v14 z" fill="var(--green)"/>
+                <path d="M150 256 l-7 14 h14 z" fill="var(--green)"/>
+            </g>
+            <g class="ann" text-anchor="middle">
+                <text x="357" y="112">add</text>
+                <text x="777" y="112">commit</text>
+                <text x="1220" y="104">push</text>
+                <text x="1220" y="240" fill="var(--green)">fetch</text>
+                <text x="805" y="364" fill="var(--green)">pull = fetch + merge</text>
+            </g>
+        </svg>
+    </div>
+</section>
+
+<!-- ===================== 18. MERGE VS REBASE ===================== -->
+<section class="slide" data-sec="git" data-quiet>
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/git</span>$ git merge <span class="c">vs</span> git rebase</div>
+        <h2>merge hay rebase?</h2>
+        <div class="cols c2" style="gap:80px">
+            <div>
+                <svg class="dia sweep" viewBox="0 0 740 300" width="740" height="300" aria-label="Merge tạo commit gộp">
+                    <g fill="none" stroke-width="3">
+                        <line x1="40" y1="80" x2="640" y2="80" stroke="var(--ink)"/>
+                        <path d="M200 80 C 260 80, 260 210, 320 210 L 460 210 C 540 210, 560 80, 640 80" stroke="var(--orange)"/>
+                    </g>
+                    <g fill="#fff" stroke-width="3">
+                        <circle cx="40" cy="80" r="20" stroke="var(--ink)"/><circle cx="200" cy="80" r="20" stroke="var(--ink)"/>
+                        <circle cx="440" cy="80" r="20" stroke="var(--ink)"/>
+                        <circle cx="340" cy="210" r="20" stroke="var(--orange)"/><circle cx="460" cy="210" r="20" stroke="var(--orange)"/>
+                        <circle cx="640" cy="80" r="24" stroke="var(--green)" fill="var(--green-soft)"/>
+                    </g>
+                    <g class="mono sm" text-anchor="middle"><text x="40" y="134">A</text><text x="200" y="134">B</text><text x="440" y="134">E</text><text x="340" y="262">C</text><text x="460" y="262">D</text><text x="640" y="134" fill="var(--green)">M</text></g>
+                </svg>
+                <h3 style="margin-top:16px"><code>merge</code></h3>
+                <p class="small" data-i18n="s18.p1">Tạo thêm merge commit <b class="g">M</b>. Giữ nguyên lịch sử thật, an toàn, dễ hiểu. Mặc định nên dùng cái này.</p>
+            </div>
+            <div>
+                <svg class="dia sweep" viewBox="0 0 740 300" width="740" height="300" aria-label="Rebase viết lại commit lên đầu nhánh">
+                    <g fill="none" stroke-width="3">
+                        <line x1="40" y1="80" x2="680" y2="80" stroke="var(--ink)"/>
+                        <path d="M200 80 C 260 80, 260 210, 320 210 L 460 210" stroke="var(--rule)" stroke-dasharray="6 6"/>
+                    </g>
+                    <g fill="#fff" stroke-width="3">
+                        <circle cx="40" cy="80" r="20" stroke="var(--ink)"/><circle cx="200" cy="80" r="20" stroke="var(--ink)"/>
+                        <circle cx="400" cy="80" r="20" stroke="var(--ink)"/>
+                        <circle cx="540" cy="80" r="20" stroke="var(--orange)" fill="var(--orange-soft)"/><circle cx="680" cy="80" r="20" stroke="var(--orange)" fill="var(--orange-soft)"/>
+                        <circle cx="340" cy="210" r="20" stroke="var(--rule)" stroke-dasharray="5 5"/><circle cx="460" cy="210" r="20" stroke="var(--rule)" stroke-dasharray="5 5"/>
+                    </g>
+                    <g class="mono sm" text-anchor="middle"><text x="40" y="134">A</text><text x="200" y="134">B</text><text x="400" y="134">E</text><text x="540" y="134" fill="var(--orange)">C′</text><text x="680" y="134" fill="var(--orange)">D′</text><text x="340" y="262" fill="var(--gray)">C</text><text x="460" y="262" fill="var(--gray)">D</text></g>
+                </svg>
+                <h3 style="margin-top:16px"><code>rebase</code></h3>
+                <p class="small" data-i18n="s18.p2">Chép C, D thành C′, D′ đặt lên sau E. Lịch sử thẳng, gọn, nhưng <span class="r">viết lại</span> commit: đừng rebase branch người khác đang dùng.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 19. NỀN TẢNG ===================== -->
+<section class="slide" data-sec="git">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/git</span>$ git remote add origin <span class="c">???</span></div>
+        <h2 data-i18n="s19.h2">Git là công cụ, còn đây là nơi lưu repo</h2>
+        <div class="platforms">
+            <div class="pick"><img class="plat-logo" src="res/Octicons-mark-github.svg" alt=""><b class="g">GitHub</b><p data-i18n="s19.p1">Lớn nhất thế giới, trung tâm của mã nguồn mở. Thuộc Microsoft.</p></div>
+            <div><img class="plat-logo" src="res/gitlab.svg" alt=""><b>GitLab</b><p data-i18n="s19.p2">Mạnh về CI/CD, có thể self-host.</p></div>
+            <div><img class="plat-logo" src="res/bitbucket.svg" alt=""><b>Bitbucket</b><p data-i18n="s19.p3">Của Atlassian, đi cùng Jira trong nhiều công ty.</p></div>
+            <div><img class="plat-logo" src="res/codeberg.svg" alt=""><img class="plat-logo" src="res/gitea.svg" alt=""><b>Codeberg, Gitea</b><p data-i18n="s19.p4">Phi lợi nhuận, nhẹ, self-host dễ dàng.</p></div>
+        </div>
+        <div class="cols" style="grid-template-columns: 1fr 760px; gap: 56px; margin-top: 48px; align-items: start;">
+            <p class="callout green" data-i18n="s19.p5">Trong buổi hôm nay, chúng ta sẽ sử dụng GitHub. Repo <b>ftulabs.github.io</b> cũng nằm ở đây.</p>
+            <img class="shot-sm shot-crop" src="res/shots/repo-ftulabs.png" alt="Repo ftulabs/ftulabs.github.io trên GitHub">
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 20. TẠO TK GITHUB ===================== -->
+<section class="slide" data-sec="git">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/git</span>$ open https://github.com/signup</div>
+        <h2 data-i18n="s20.h2">Tạo tài khoản GitHub</h2>
+        <div class="cols" style="grid-template-columns: 1fr 880px; gap: 56px">
+            <ol class="steps">
+                <li><b data-i18n="s20.b1">Vào github.com/signup</b><p data-i18n="s20.p1">Dùng email cá nhân bạn sẽ giữ lâu dài.</p></li>
+                <li><b data-i18n="s20.b2">Chọn username nghiêm túc</b><p data-i18n="s20.p2">Nó sẽ nằm trong CV và link portfolio của bạn.</p></li>
+                <li><b>Verify email</b><p data-i18n="s20.p3">Nhập code GitHub gửi về hộp thư.</p></li>
+                <li><b data-i18n="s20.b3">Bật 2FA</b><p data-i18n="s20.p4">Settings, Password and authentication. GitHub bắt buộc với người đóng góp code.</p></li>
+                <li><b data-i18n="s20.b4">Nhận GitHub Student Developer Pack</b><p data-i18n="s20.p5">education.github.com, xác minh bằng email trường: Copilot, JetBrains và nhiều thứ miễn phí.</p></li>
+            </ol>
+            <div class="signup-shots">
+                <figure><img src="res/shots/gh-2fa.png" alt="Trang hướng dẫn bật 2FA của GitHub"><figcaption class="small muted" data-i18n="s20.f1">Bước 4: bật 2FA</figcaption></figure>
+                <figure><img src="res/shots/gh-education.png" alt="Trang GitHub Student Developer Pack"><figcaption class="small muted" data-i18n="s20.f2">Bước 5: Student Developer Pack</figcaption></figure>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 21. CÀI GIT + GH ===================== -->
+<section class="slide" data-sec="git">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/git</span>$ which git gh</div>
+        <h2 data-i18n="s21.h2">Cài git và gh CLI</h2>
+        <div class="cols c3" style="gap:40px">
+            <div class="os-col">
+                <h3>Windows</h3>
+                <div class="term"><pre><span class="pr">&gt;</span> winget install Git.Git
+<span class="pr">&gt;</span> winget install GitHub.cli</pre></div>
+                <p class="small muted" style="margin-top:16px" data-i18n="s21.p1">Mở lại terminal sau khi cài. Dùng Git Bash hoặc PowerShell.</p>
+            </div>
+            <div class="os-col">
+                <h3>macOS</h3>
+                <div class="term"><pre><span class="pr">$</span> xcode-select --install
+<span class="pr">$</span> brew install gh</pre></div>
+                <p class="small muted" style="margin-top:16px" data-i18n="s21.p2">Lệnh đầu cài sẵn git. Chưa có Homebrew thì cài từ brew.sh.</p>
+            </div>
+            <div class="os-col">
+                <h3>Linux</h3>
+                <div class="term"><pre><span class="c"># Ubuntu, Debian</span>
+<span class="pr">$</span> sudo apt install git gh
+<span class="c"># Fedora</span>
+<span class="pr">$</span> sudo dnf install git gh
+<span class="c"># Arch</span>
+<span class="pr">$</span> sudo pacman -S git github-cli</pre></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 22. CẤU HÌNH ===================== -->
+<section class="slide" data-sec="git">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/git</span>$ git config --list</div>
+        <h2 data-i18n="s22.h2">Cấu hình một lần, dùng mãi</h2>
+        <div class="cols c2" style="grid-template-columns: 1040px 1fr; gap: 56px">
+            <div class="term" style="font-size:25px">
+                <div class="t-head"><i></i><i></i><i></i><span>terminal</span></div>
+<pre><span class="c" data-i18n="s22.span1"># tên và email gắn vào mọi commit</span>
+<span class="pr">$</span> git config --global user.name "Nguyen Van A"
+<span class="pr">$</span> git config --global user.email "a@example.com"
+<span class="pr">$</span> git config --global init.defaultBranch main
+
+<span class="c" data-i18n="s22.span2"># đăng nhập GitHub qua trình duyệt</span>
+<span class="pr">$</span> gh auth login
+<span class="pr">$</span> gh auth status
+<span class="hl">✓ Logged in to github.com account nguyenvana</span></pre>
+            </div>
+            <div style="padding-top:12px">
+                <p class="callout" data-i18n="s22.p1">Email ở đây nên trùng email tài khoản GitHub để commit hiện đúng avatar của bạn.</p>
+                <p class="small muted" style="margin-top:30px" data-i18n="s22.p2">Khi <code>gh auth login</code> hỏi, chọn GitHub.com, HTTPS, rồi đăng nhập bằng trình duyệt.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 23. DIVIDER THỰC HÀNH ===================== -->
+<section class="slide divider" data-sec="lab">
+    <div class="content">
+        <div class="sec-no" data-i18n="s23.div1">Phần 4 / 4</div>
+        <h2 data-i18n="s23.h2">Thực hành</h2>
+        <div class="sec-list" data-i18n="s23.div2"><span>$ gh repo view</span> <span class="g">ftulabs/ftulabs.github.io</span><br>30 phút, 1 commit, 1 pull request</div>
+    </div>
+</section>
+
+<!-- ===================== 24. ĐỀ BÀI ===================== -->
+<section class="slide" data-sec="lab">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/thuc-hanh</span>$ cat de-bai.md</div>
+        <h2 data-i18n="s24.h2">Gửi pull request đầu tiên</h2>
+        <div class="cols" style="grid-template-columns: 1fr 760px; gap: 56px">
+            <div>
+                <p class="lede" style="max-width:30ch" data-i18n="s24.p1">Giới thiệu bản thân tại <b class="g">ftulabs.github.io/k65-members</b>.</p>
+                <ul class="plain" style="margin-top:26px">
+                    <li data-i18n="s24.li1">Chỉ thêm <b>1 file</b> của bạn: <code>k65/members/&lt;username&gt;.json</code></li>
+                    <li data-i18n="s24.li2">Đúng <b>1 commit</b>: <code>feature: Add K65 member Tên Bạn</code></li>
+                    <li data-i18n="s24.li3"><span class="g">Được dùng LLM</span>, nhưng phải hiểu mình đã thêm gì</li>
+                </ul>
+                <img class="shot-sm shot-crop" style="margin-top:24px; height:250px" src="res/shots/ftulabs-home.png" alt="ftulabs.github.io với banner Sinh hoạt công dân K65">
+            </div>
+            <div class="term" style="font-size:23px">
+                <div class="t-head"><i></i><i></i><i></i><span>k65/members/nguyenvana.json</span></div>
+<pre><span class="add">+ {</span><span class="add" data-i18n="s24.j1">+   "name": "Nguyễn Văn A",</span><span class="add">+   "github": "nguyenvana",</span><span class="add">+   "role": "K65, FTDS",</span><span class="add" data-i18n="s24.j2">+   "bio": "Một hai câu về bạn.",</span><span class="add">+   "links": {</span><span class="add">+     "Website": "https://…"</span><span class="add">+   }</span><span class="add">+ }</span></pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 25. CÁC BƯỚC ===================== -->
+<section class="slide" data-sec="lab">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/thuc-hanh</span>$ cat cac-buoc.sh</div>
+        <h2 data-i18n="s25.h2">Từ fork tới pull request</h2>
+        <div class="term" style="font-size:23px; max-width:1620px">
+            <div class="t-head"><i></i><i></i><i></i><span>cac-buoc.sh</span></div>
+<pre><span class="c" data-i18n="s25.span1"># 1. fork về tài khoản của bạn và clone xuống máy</span>
+<span class="pr">$</span> gh repo fork ftulabs/ftulabs.github.io --clone && cd ftulabs.github.io
+<span class="c" data-i18n="s25.span2"># 2. tạo branch riêng</span>
+<span class="pr">$</span> git switch -c feature/k65-<span class="hl">nguyenvana</span>
+<span class="c" data-i18n="s25.span3"># 3. tạo file của bạn từ mẫu, rồi sửa trong IDE</span>
+<span class="pr">$</span> cp k65/members/_template.json k65/members/<span class="hl">nguyenvana</span>.json
+<span class="c" data-i18n="s25.span4"># 4. commit đúng 1 lần</span>
+<span class="pr">$</span> git add k65/members && git commit -m "feature: Add K65 member <span class="hl">Nguyen Van A</span>"
+<span class="c" data-i18n="s25.span5"># 5. đẩy lên và mở PR</span>
+<span class="pr">$</span> git push -u origin HEAD && gh pr create --fill</pre>
+        </div>
+        <div class="web-steps">
+            <span class="small muted" data-i18n="s25.web">Hoặc trên web:</span>
+            <figure><img src="res/shots/pr-fork.png" alt="Nút Fork trên GitHub"><figcaption class="small muted">Fork</figcaption></figure>
+            <figure><img src="res/shots/pr-compare.png" alt="Nút Compare &amp; pull request"><figcaption class="small muted">Compare &amp; pull request</figcaption></figure>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 26. LỠ NHIỀU COMMIT ===================== -->
+<section class="slide" data-sec="lab">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/thuc-hanh</span>$ git log --oneline <span class="c">main..HEAD</span></div>
+        <h2 data-i18n="s26.h2">Lỡ 3 commit? Gộp thành 1</h2>
+        <div class="cols c2" style="grid-template-columns: 1000px 1fr; gap: 56px">
+            <div class="term" style="font-size:25px">
+                <div class="t-head"><i></i><i></i><i></i><span>terminal</span></div>
+<pre><span class="del" data-i18n="s26.span1">c9e1f20 sửa lại typo</span><span class="del" data-i18n="s26.span2">b47d3a1 thêm link github</span><span class="del" data-i18n="s26.span3">a12f0e9 thêm thông tin</span>
+<span class="pr">$</span> git reset --soft $(git merge-base HEAD upstream/main)
+<span class="pr">$</span> git commit -m "feature: Add K65 member Nguyen Van A"
+<span class="pr">$</span> git push --force-with-lease
+<span class="add">3f9c2ab feature: Add K65 member Nguyen Van A</span></pre>
+            </div>
+            <div style="padding-top:10px">
+                <p class="small" data-i18n="s26.p1"><code>reset --soft</code> bỏ các commit nhưng giữ nguyên nội dung file, để bạn commit lại một lần.</p>
+                <p class="small muted" style="margin-top:26px" data-i18n="s26.p2"><code>gh repo fork --clone</code> đã tự thêm remote <code>upstream</code> trỏ về repo gốc.</p>
+                <p class="small muted" style="margin-top:26px" data-i18n="s26.p3">Dùng <code>--force-with-lease</code> thay vì <code>--force</code>: an toàn hơn khi ghi đè branch của chính bạn.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 27. CHECKLIST ===================== -->
+<section class="slide" data-sec="lab">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/thuc-hanh</span>$ gh pr checks</div>
+        <h2 data-i18n="s27.h2">Trước khi bấm “Create pull request”</h2>
+        <div class="cols c2" style="gap:64px">
+            <ul class="plain green">
+                <li data-i18n="s27.li1">Tên file trùng GitHub username của bạn</li>
+                <li data-i18n="s27.li2">JSON hợp lệ: check <b>K65 Members</b> trên PR báo xanh</li>
+                <li data-i18n="s27.li3">Chỉ sửa đúng file của mình, không đụng file khác</li>
+            </ul>
+            <ul class="plain green">
+                <li data-i18n="s27.li4">PR chỉ có đúng 1 commit</li>
+                <li data-i18n="s27.li5">Commit message dạng <code>feature: …</code></li>
+                <li data-i18n="s27.li6">Mô tả PR nói rõ bạn thêm gì</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 28. KẾT ===================== -->
+<section class="slide divider" data-sec="end">
+    <div class="content">
+        <div class="sec-no">EOF</div>
+        <h2 data-i18n="s28.h2">Hỏi đáp</h2>
+        <div class="sec-list" data-i18n="s28.div1"><span>$ gh pr list --repo ftulabs/ftulabs.github.io --author @me</span><br>PR của bạn sẽ hiện ở đây. Chúc merge thành công.</div>
+    </div>
+</section>
+
+</main>
+<div class="progress" id="progress"></div>
+
+<script>
+(function () {
+    const deck = document.getElementById("deck");
+    const slides = Array.from(deck.querySelectorAll(".slide"));
+    const total = slides.length;
+    const pad = n => String(n).padStart(2, "0");
+
+    // seeded random so each sheet keeps the same layout
+    function rng(seed) {
+        return function () {
+            seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+            let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+            t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        };
+    }
+
+    const GLYPHS = ["<>", "#$!?", "#include", "/usr/bin/sh", "{ }", "&&", "||", "0x1F", "~/", "#!/bin/bash",
+        "git log", "λ", "::", "!=", "=>", "/* */", "$?", "chmod +x", "[ ]", "%d\\n", "</>", "sudo !!", "<<EOF", "#define"];
+
+    // ring diagram shared with the cover: inner = git, middle = ide, outer = agents + OS
+    const ORBIT = { cx: 1390, cy: 500, rings: { git: 120, ide: 280, outer: 440 } };
+    const ORBIT_LABELS = { git: "git", ide: "ide", outer: "agent, os" };
+    const ORBIT_COLORS = { git: "#1E8E3E", ide: "#1E2226", outer: "#1E2226" };
+    const R_LABEL = "r = 67";
+    const NODES = [
+        ["Git_icon.svg", "git", 30, "git"], ["Octicons-mark-github.svg", "git", 210, "git"],
+        ["Visual_Studio_Code_1.35_icon.svg", "ide", -120, "ide"],
+        ["cursor.svg", "ide", 200, "ide"],
+        ["antigravity.png", "ide", 160, "ide"],
+        ["IntelliJ_IDEA_Icon.svg", "ide", 120, "ide"],
+        ["android-studio.svg", "ide", 80, "ide"],
+        ["Xcode.svg", "ide", 40, "ide"],
+        ["vimlogo.svg", "ide", 0, "ide"],
+        ["nano", "ide", -40, "ide"],
+        ["claude-code.svg", "outer", -60, "agent"], ["opencode-logo-dark.svg", "outer", -20, "agent"],
+        ["windows11.svg", "outer", 20, "os"], ["Finder_Icon_macOS_Tahoe.png", "outer", 60, "os"], ["Tux.svg", "outer", 110, "os"]
+    ];
+
+    // groups: which node groups to reveal, e.g. ["ide"] or ["agent"]
+    // Starts fully colored like the cover, then every ring outside `groups` fades to dashed gray.
+    function orbit(el, groups) {
+        const { cx, cy, rings } = ORBIT;
+        const active = new Set(NODES.filter(n => groups.includes(n[3])).map(n => n[1]));
+        el("line", { x1: cx - 490, y1: cy, x2: cx + 490, y2: cy, stroke: "#E3E6EA", "stroke-width": 1 });
+        el("line", { x1: cx, y1: cy - 460, x2: cx, y2: cy + 500, stroke: "#E3E6EA", "stroke-width": 1 });
+        for (const ring in rings) {
+            const rr = rings[ring], on = active.has(ring);
+            const solid = { cx, cy, r: rr, fill: "none", stroke: ORBIT_COLORS[ring], "stroke-width": ring === "git" ? 2.5 : 2 };
+            if (on) el("circle", solid);
+            else {
+                el("circle", { cx, cy, r: rr, fill: "none", stroke: "#D5D9DE", "stroke-width": 1.5, "stroke-dasharray": "6 8", class: "fade-in" });
+                el("circle", { ...solid, class: "fade-out" });
+            }
+            const outer = ring === "outer";   // top of the outer ring hits the ruler, label it bottom-right instead
+            const lab = el("text", { x: outer ? cx + 355 : cx + 10, y: outer ? cy + 300 : cy - rr - 8, "font-family": "Google Sans Code, monospace", "font-size": 18,
+                fill: on ? "#E8710A" : "#B9BFC6" });
+            lab.textContent = ORBIT_LABELS[ring];
+        }
+        const ctAttrs = { x: cx, y: cy + 14, "text-anchor": "middle", "font-family": "Google Sans Code, monospace", "font-size": 40 };
+        if (active.has("git")) el("text", { ...ctAttrs, fill: "#1E8E3E" }).textContent = "</>";
+        else {
+            el("text", { ...ctAttrs, fill: "#C9CED4", class: "fade-in" }).textContent = "</>";
+            el("text", { ...ctAttrs, fill: "#1E8E3E", class: "fade-out" }).textContent = "</>";
+        }
+
+        // radius dimension to the revealed ring, drawn once the others have faded
+        const ar = [...active][0];
+        if (ar) {
+            const rr = rings[ar], a = (ar === "outer" ? -40 : -65) * Math.PI / 180;   // outer: dodge the Claude Code node
+            const ex = cx + Math.cos(a) * rr, ey = cy + Math.sin(a) * rr;
+            el("line", { x1: cx, y1: cy, x2: ex, y2: ey, stroke: "#E8710A", "stroke-width": 2,
+                class: "draw", style: "--len:" + rr + ";--d:1.5s" });
+            const g = el("g", { class: "pop", style: "--d:2.1s" });
+            el("circle", { cx: ex, cy: ey, r: 6, fill: "#E8710A" }, g);
+            const t = el("text", { x: ex + 12, y: ey - 10, "font-family": "Google Sans Code, monospace", "font-size": 22, fill: "#E8710A" }, g);
+            t.textContent = R_LABEL;
+        }
+
+        NODES.forEach(([file, ring, deg, group]) => {
+            const rr = rings[ring], on = groups.includes(group);
+            const x = cx + rr * Math.cos(deg * Math.PI / 180), y = cy + rr * Math.sin(deg * Math.PI / 180);
+            const R = ring === "git" ? 34 : 40, im = ring === "git" ? 44 : 50;
+            const g = el("g", {});
+            const node = { cx: x, cy: y, r: R, fill: "#fff", stroke: ORBIT_COLORS[ring], "stroke-width": on ? 2 : 1.5 };
+            if (on) el("circle", node, g);
+            else {
+                el("circle", { ...node, stroke: "#DCE0E4", "stroke-dasharray": "4 5" }, g);
+                el("circle", { ...node, fill: "none", class: "fade-out" }, g);
+            }
+            const cls = on ? "" : "dim";
+            if (file === "nano") {
+                el("text", { x, y: y + 8, "text-anchor": "middle", "font-family": "Google Sans Code, monospace",
+                    "font-size": 22, "font-weight": 700, fill: "#7c00cd", class: cls }, g).textContent = "nano";
+            } else {
+                el("image", { href: "res/" + file, x: x - im / 2, y: y - im / 2, width: im, height: im, class: cls }, g);
+            }
+        });
+    }
+
+    function decorate(slide, i) {
+        const r = rng(i * 7919 + 13);
+        const quiet = slide.hasAttribute("data-quiet");
+        let decor = slide.querySelector(".decor");
+        if (!decor) {
+            decor = document.createElement("div");
+            decor.className = "decor";
+            slide.prepend(decor);
+
+            const ns = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(ns, "svg");
+            svg.setAttribute("viewBox", "0 0 1920 1080");
+            svg.setAttribute("aria-hidden", "true");
+            const el = (tag, attrs, parent) => {
+                const e = document.createElementNS(ns, tag);
+                for (const k in attrs) e.setAttribute(k, attrs[k]);
+                (parent || svg).appendChild(e);
+                return e;
+            };
+
+            if (slide.dataset.ring) orbit(el, slide.dataset.ring.split(" "));
+            else compass();
+            decor.appendChild(svg);
+
+            function compass() {
+            // compass construction, mostly off the right edge
+            const big = slide.classList.contains("divider");
+            const corner = r() < .5;
+            const cx = big ? 1440 : 1860;
+            const cy = big ? 540 : (corner ? 60 : 1020);
+            const R = big ? 360 : 150 + r() * 90;
+            el("circle", { cx, cy, r: R, fill: "none", stroke: "#DCE0E4", "stroke-width": 1.5, "stroke-dasharray": "6 8" });
+            el("circle", { cx, cy, r: R * .62, fill: "none", stroke: big ? "#1E2226" : "#E3E6EA", "stroke-width": 1.5 });
+            if (big) el("circle", { cx, cy, r: R * .26, fill: "none", stroke: "#1E8E3E", "stroke-width": 2.5 });
+            el("line", { x1: cx - R - 40, y1: cy, x2: cx + R + 40, y2: cy, stroke: "#E3E6EA", "stroke-width": 1 });
+            el("line", { x1: cx, y1: cy - R - 40, x2: cx, y2: cy + R + 40, stroke: "#E3E6EA", "stroke-width": 1 });
+            const a = big ? -Math.PI / 4 - r() * .6 : (corner ? Math.PI * .75 : -Math.PI * .75) + (r() - .5) * .5;
+            const ex = cx + Math.cos(a) * R, ey = cy + Math.sin(a) * R;
+            el("line", { x1: cx, y1: cy, x2: ex, y2: ey, stroke: "#E8710A", "stroke-width": 1.5, opacity: big ? 1 : .55 });
+            el("circle", { cx: ex, cy: ey, r: 4, fill: "#E8710A", opacity: big ? 1 : .55 });
+            const t = el("text", { x: big ? ex + 12 : ex - 90, y: big ? ey - 8 : ey + (corner ? 30 : -14), fill: "#E8710A", opacity: big ? 1 : .6,
+                "font-family": "Google Sans Code, monospace", "font-size": 20 });
+            t.textContent = R_LABEL;
+            }
+
+            // scattered code glyphs on the margins
+            const big = slide.classList.contains("divider") && !slide.dataset.ring;
+            const ringed = !!slide.dataset.ring;
+            const custom = slide.dataset.glyphs ? slide.dataset.glyphs.split("|") : null;   // per-slide glyph text
+            const count = custom ? custom.length : ringed ? 2 : quiet ? 2 : (big ? 9 : 4);
+            const used = new Set();
+            for (let k = 0; k < count; k++) {
+                const g = document.createElement("span");
+                g.className = "glyph";
+                if (custom) g.textContent = custom[k];
+                else {
+                    let gi = Math.floor(r() * GLYPHS.length);
+                    while (used.has(gi)) gi = (gi + 1) % GLYPHS.length;
+                    used.add(gi);
+                    g.textContent = GLYPHS[gi];
+                }
+                let x, y;
+                if (big) { x = 1000 + r() * 780; y = 120 + r() * 760; }
+                else if (ringed) { x = 160 + k * 360 + r() * 140; y = 922 + r() * 14; }
+                else {
+                    if (r() < .6) { x = 760 + r() * 760; y = 82 + r() * 14; }
+                    else if (!slide.querySelector(".egg")) { x = 160 + r() * 620; y = 922 + r() * 14; }
+                    else { x = 760 + r() * 760; y = 82 + r() * 14; }
+                }
+                g.style.left = x + "px";
+                g.style.top = y + "px";
+                g.style.fontSize = (big ? 18 + Math.round(r() * 22) : 16 + Math.round(r() * 8)) + "px";
+                decor.appendChild(g);
+            }
+        }
+
+        // frame, rulers, registration marks
+        ["frame", "ruler-x", "ruler-y", "reg tl", "reg tr", "reg bl", "reg br"].forEach(c => {
+            const d = document.createElement("div");
+            d.className = c;
+            slide.appendChild(d);
+        });
+
+        // title block
+        const tb = document.createElement("div");
+        tb.className = "titleblock";
+        tb.innerHTML = '<span>' + t("sections." + slide.dataset.sec) + '</span><span class="tb-dot">•</span>' +
+            '<span class="tb-sheet">' + pad(i + 1) + '/' + pad(total) + '</span>';
+        if (i !== 0) slide.appendChild(tb);
+    }
+
+    // ---------- localization ----------
+    // Strings live in l10n/<lang>.json (default vi, override with ?lang=xx).
+    // The HTML keeps the Vietnamese text as a fallback for when the JSON can't load (e.g. opened via file://).
+    const lang = new URLSearchParams(location.search).get("lang") || "vi";
+    let STRINGS = {};
+
+    function t(key) {
+        const v = key.split(".").reduce((o, k) => (o == null ? o : o[k]), STRINGS);
+        return v == null ? FALLBACK[key] : v;
+    }
+
+    const FALLBACK = {
+        "sections.intro": "Mở đầu", "sections.ide": "IDE", "sections.llm": "Coding with LLMs",
+        "sections.git": "Git + GitHub", "sections.lab": "Thực hành", "sections.end": "Kết thúc"
+    };
+
+    function applyStrings() {
+        const missing = [];
+        document.querySelectorAll("[data-i18n]").forEach(el => {
+            const key = el.dataset.i18n;
+            const v = key.split(".").reduce((o, k) => (o == null ? o : o[k]), STRINGS);
+            if (v == null) { missing.push(key); return; }
+            if (el instanceof SVGElement) el.textContent = v;
+            else el.innerHTML = v;
+        });
+        document.querySelectorAll("[data-i18n-alt]").forEach(el => {
+            const v = t(el.dataset.i18nAlt);
+            if (v != null) el.alt = v;
+        });
+        if (STRINGS.ui && STRINGS.ui.title) document.title = STRINGS.ui.title;
+        if (missing.length) console.warn("l10n/" + lang + ".json is missing keys:", missing);
+    }
+
+    function warn(msg) {
+        console.warn(msg);
+        const b = document.createElement("div");
+        b.textContent = msg;
+        b.style.cssText = "position:fixed;top:8px;left:8px;z-index:20;padding:6px 12px;font:14px/1.4 monospace;" +
+            "background:#FEF1E6;color:#B4540A;border:1px solid #E8710A;border-radius:4px;max-width:90vw";
+        document.body.appendChild(b);
+        setTimeout(() => b.remove(), 8000);
+    }
+
+    async function loadStrings() {
+        try {
+            const res = await fetch("l10n/" + lang + ".json", { cache: "no-cache" });
+            if (!res.ok) throw new Error(res.status + " " + res.statusText);
+            STRINGS = await res.json();
+            applyStrings();
+        } catch (err) {
+            warn("Không tải được l10n/" + lang + ".json (" + err.message + "). Đang dùng chữ có sẵn trong HTML. " +
+                "Chạy `python3 -m http.server` trong thư mục slide rồi mở http://localhost:8000");
+        }
+    }
+
+    let cur = 0;
+    let ready = false;
+    // ?preview: render-only copy for the /ctl controller (no input, no sync)
+    const PREVIEW = new URLSearchParams(location.search).has("preview");
+    if (PREVIEW) document.documentElement.classList.add("preview");
+
+    // tell the controller where we are (served by serve.py; silently no-op elsewhere)
+    function report() {
+        if (!ready || PREVIEW || !location.protocol.startsWith("http")) return;
+        const s = slides[cur];
+        fetch("/api/state", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ slide: cur + 1, page: s._page || 0, pages: s.querySelectorAll(".page").length || 1, total })
+        }).catch(() => {});
+    }
+
+    // paged slides step through .page blocks before moving on
+    function setPage(slide, p) {
+        const pages = slide.querySelectorAll(".page");
+        slide._page = Math.max(0, Math.min(pages.length - 1, p));
+        pages.forEach((pg, i) => pg.classList.toggle("is-on", i === slide._page));
+        slide.querySelectorAll(".ico").forEach(b => b.classList.toggle("on", +b.dataset.page === slide._page));
+        slide.querySelectorAll(".pager i").forEach((d, i) => d.classList.toggle("on", i === slide._page));
+        const label = slide.querySelector(".pager span");
+        if (label) label.textContent = (slide._page + 1) + "/" + pages.length;
+        if (slide === slides[cur]) report();
+    }
+    slides.filter(s => s.classList.contains("paged")).forEach(s => {
+        setPage(s, 0);
+        s.querySelectorAll(".ico").forEach(b => b.addEventListener("click", e => {
+            e.stopPropagation();
+            setPage(s, +b.dataset.page);
+        }));
+    });
+    function step(dir) {
+        const s = slides[cur];
+        if (s.classList.contains("paged")) {
+            const last = s.querySelectorAll(".page").length - 1;
+            if (dir > 0 && s._page < last) return setPage(s, s._page + 1);
+            if (dir < 0 && s._page > 0) return setPage(s, s._page - 1);
+        }
+        const next = cur + dir;
+        show(next);
+        const t = slides[cur];
+        if (t.classList.contains("paged") && next === cur)
+            setPage(t, dir > 0 ? 0 : t.querySelectorAll(".page").length - 1);
+    }
+
+    function show(n) {
+        cur = Math.max(0, Math.min(total - 1, n));
+        slides.forEach((s, i) => s.classList.toggle("is-active", i === cur));
+        document.getElementById("progress").style.width = ((cur + 1) / total * 100) + "%";
+        if (!PREVIEW && location.hash !== "#" + (cur + 1)) history.replaceState(null, "", "#" + (cur + 1));
+        report();
+    }
+
+    // hash "#n" or "#n.p" (page p of a paged slide, "L" = last page)
+    function go(hash) {
+        const [a, b] = hash.replace("#", "").split(".");
+        show((parseInt(a, 10) || 1) - 1);
+        const s = slides[cur];
+        if (s.classList.contains("paged")) {
+            const n = s.querySelectorAll(".page").length;
+            setPage(s, b === "L" ? n - 1 : (parseInt(b, 10) || 0));
+        }
+    }
+
+    function fit() {
+        const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+        deck.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+    }
+
+    addEventListener("resize", fit);
+    if (!PREVIEW) addEventListener("keydown", e => {
+        if (["ArrowRight", "PageDown", " ", "Enter", "l"].includes(e.key)) { e.preventDefault(); step(1); }
+        else if (["ArrowLeft", "PageUp", "Backspace", "h"].includes(e.key)) { e.preventDefault(); step(-1); }
+        else if (e.key === "Home") show(0);
+        else if (e.key === "End") show(total - 1);
+        else if (e.key === "f") {
+            if (document.fullscreenElement) document.exitFullscreen();
+            else document.documentElement.requestFullscreen();
+        }
+    });
+    if (!PREVIEW) addEventListener("click", e => {
+        if (e.target.closest("a")) return;
+        step(e.clientX > innerWidth / 3 ? 1 : -1);
+    });
+    addEventListener("hashchange", () => go(location.hash));
+
+    // remote control from /ctl
+    if (!PREVIEW && location.protocol.startsWith("http")) {
+        const es = new EventSource("/api/events");
+        es.addEventListener("cmd", e => {
+            const c = JSON.parse(e.data);
+            if (c.cmd === "next") step(1);
+            else if (c.cmd === "prev") step(-1);
+            else if (c.cmd === "goto") go("#" + c.to);
+            else if (c.cmd === "sync") report();
+        });
+    }
+
+    loadStrings().then(() => {
+        slides.forEach(decorate);
+
+    // git diagrams fade in left to right, like a history being written
+    document.querySelectorAll("svg.sweep").forEach(svg => {
+        const vb = svg.viewBox.baseVal;
+        svg.querySelectorAll("circle, line, path, rect, text, polyline").forEach(el => {
+            let x = 0;
+            try { x = el.getBBox().x; } catch (e) {}
+            el.classList.add("sw");
+            el.style.setProperty("--d", (0.15 + 1.4 * Math.max(0, x - vb.x) / vb.width).toFixed(2) + "s");
+        });
+    });
+        fit();
+        ready = true;
+        go(location.hash);
+    });
+})();
+</script>
+</body>
+</html>

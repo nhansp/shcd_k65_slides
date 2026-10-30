@@ -1,0 +1,289 @@
+{
+  "ui": {
+    "title": "Sinh hoạt chuyên môn K65: IDE, LLM, Git + GitHub",
+    "alt_ftu": "Trường Đại học Ngoại thương",
+    "alt_ftds": "Khoa Khoa học dữ liệu (FTDS)"
+  },
+  "sections": {
+    "intro": "Mở đầu",
+    "ide": "IDE",
+    "llm": "Coding with LLMs",
+    "git": "Git + GitHub",
+    "lab": "Thực hành",
+    "end": "Kết thúc"
+  },
+  "s01": {
+    "h1": "Sinh hoạt chuyên môn K65",
+    "p1": "<b>IDE</b>, lập trình cùng <b>LLM</b>, <b>Git + GitHub</b>",
+    "role1": "Trình bày chính",
+    "role2": "Hỗ trợ",
+    "role3": "Hỗ trợ"
+  },
+  "s02": {
+    "h2": "50 phút, hai phần",
+    "text1": "20 phút",
+    "text2": "30 phút",
+    "text3": "Thực hành: PR đầu tiên",
+    "text4": "Lý thuyết",
+    "text5": "IDE là gì, chọn IDE nào,",
+    "text6": "dùng LLM sao cho đúng,",
+    "text7": "Git và GitHub",
+    "text8": "Thực hành",
+    "text9": "Gửi 1 pull request vào ftulabs.github.io,",
+    "text10": "thêm phần giới thiệu bản thân.",
+    "text11": "Windows, macOS hay Linux đều làm được."
+  },
+  "s03": {
+    "div1": "Phần 1 / 4"
+  },
+  "s04": {
+    "h2": "IDE là gì?",
+    "p1": "<b>I</b>ntegrated <b>D</b>evelopment <b>E</b>nvironment: môi trường phát triển tích hợp.",
+    "p2": "Gom mọi thứ cần để viết, chạy và debug code vào một cửa sổ, thay vì mở 5 công cụ riêng lẻ.",
+    "alt": "VS Code với 4 file hello world (Rust, Go, Python, C++), Claude Code và terminal chạy rustc"
+  },
+  "s05": {
+    "h2": "GUI-based",
+    "p1": "Có cửa sổ, menu, dùng chuột. Dễ làm quen, nhiều tính năng tích hợp sẵn.",
+    "c1": "Microsoft. Miễn phí, nhiều extension",
+    "c2": "VS Code tích hợp AI sâu",
+    "c3": "JetBrains. Free cho sinh viên",
+    "c4": "Google. Làm app Android với Kotlin",
+    "c5": "Apple. Chỉ chạy trên Mac",
+    "c6": "Viết bằng Rust, mở file cực nhanh",
+    "c7": "Google. Giao việc cho nhiều agent cùng lúc",
+    "m1": "Còn nữa:",
+    "m2": "Chọn cái nào cũng được, quan trọng là dùng thạo."
+  },
+  "s06tui": {
+    "h2": "TUI-based",
+    "p1": "<b>T</b>ext-based <b>U</b>ser <b>I</b>nterface: chạy ngay trong terminal, chỉ dùng bàn phím.",
+    "p2": "Nhẹ, mở tức thì, dùng được qua SSH khi sửa file trên server.",
+    "c1": "Có sẵn trên hầu hết máy Linux, macOS",
+    "c2": "Vim hiện đại, cấu hình bằng Lua",
+    "c3": "Dễ nhất: phím tắt hiện sẵn ở dưới",
+    "c4": "Viết bằng Rust, có LSP sẵn",
+    "c5": "Hơn 40 tuổi, tuỳ biến bằng Lisp",
+    "qv1": "Lỡ vào Vim mà không biết thoát?",
+    "qv2": "Lưu rồi thoát: <code>:wq</code>"
+  },
+  "s06": {
+    "h2": "Dùng IDE: 7 shortcut đáng nhớ",
+    "th1": "Việc cần làm",
+    "td1": "Mở file theo tên",
+    "td2": "Mở terminal",
+    "td3": "Tìm trong cả dự án"
+  },
+  "s07": {
+    "div1": "Phần 2 / 4"
+  },
+  "s08": {
+    "h2": "Hiểu bản chất, đừng vứt hết cho LLM",
+    "span1": "- Dán đề bài, copy code, nộp",
+    "span2": "- Lỗi thì dán lỗi, lại copy tiếp",
+    "span3": "- Không đọc code AI viết ra",
+    "span4": "+ Tự nghĩ hướng giải trước",
+    "span5": "+ Hỏi LLM \"tại sao\", không chỉ \"làm\"",
+    "span6": "+ Đọc từng dòng trước khi chấp nhận",
+    "span7": "+ Tự sửa được khi AI sai",
+    "p1": "Bạn không review được code mà bạn không hiểu.",
+    "p2": "LLM vẫn bịa API, viết code chạy được nhưng sai logic, hoặc để lộ lỗ hổng bảo mật. Người chịu trách nhiệm cho đoạn code là bạn, không phải mô hình."
+  },
+  "s08ex": {
+    "h2": "Ví dụ thật: hiểu thì mới bắt được lỗi",
+    "t1": "Biết repo có gì nên nhận ra ngay model tự tạo key mới.",
+    "t2": "Biết tài liệu nói gì nên chỉ được model về đúng nguồn.",
+    "t3": "Tự đọc docs trước, rồi dùng model để kiểm tra lại mình hiểu đúng chưa."
+  },
+  "s09": {
+    "h2": "Cân bằng tài nguyên khi code",
+    "h31": "Model nhỏ cho việc nhỏ",
+    "p1": "Đổi tên biến, viết regex, giải thích lỗi: model nhỏ, nhanh, rẻ là đủ. Để model lớn cho thiết kế, debug khó.",
+    "h32": "Tối ưu input",
+    "p2": "Chỉ đưa file, đoạn log liên quan. Dán cả repo vào vừa tốn token vừa làm model rối. Mở cuộc hội thoại mới khi đổi việc.",
+    "h33": "Theo dõi usage",
+    "p3": "Biết mình còn bao nhiêu lượt. Chia việc thành từng bước có commit, hết quota giữa chừng cũng không mất gì."
+  },
+  "s09st": {
+    "h2": "Số liệu thật: 5 tháng dùng Claude Code",
+    "p1": "<b class=\"o\">98%</b> input token là <b>cache read</b>: phần lặp lại như system prompt, file đã đọc chỉ tính khoảng 1/10 giá.",
+    "h3": "Lượt gọi model, theo nơi chạy",
+    "b1": "Phiên chính",
+    "b2": "Subagent",
+    "p3": "Việc chính chạy Opus. Việc nhỏ, chạy song song (tìm screenshot, đọc log) giao cho subagent dùng <b class=\"o\">Sonnet, Haiku</b>. Output chỉ chiếm 0,24% tổng token.",
+    "p4": "16/05 tới 30/10/2026: 29 phiên chính, 1.311 lượt subagent, 3.946 prompt.",
+    "l1": "subagent 15,3%",
+    "l2": "subagent 2,8%"
+  },
+  "s10": {
+    "h2": "Prompt: đủ ngữ cảnh, rõ mục tiêu",
+    "p1": "Ngắn, nhưng code đã nằm sẵn trong ngữ cảnh",
+    "p3": "Việc nhiều bước: đánh số mục tiêu",
+    "t1": "Mở chat mới mà hỏi đúng câu này thì model chỉ đoán được. Có file code đi kèm thì ngắn vẫn đủ.",
+    "t2": "Mục tiêu đánh số, ràng buộc rõ, có số đo: model biết phải làm gì và khi nào là xong.",
+    "c0": "Checklist:",
+    "c1": "mục tiêu",
+    "c2": "ngữ cảnh",
+    "c3": "ràng buộc",
+    "c4": "kết quả mong muốn"
+  },
+  "s11": {
+    "p1": "Không chỉ chat: agent tự đọc repo, edit file, chạy lệnh trong terminal, rồi chờ bạn duyệt.",
+    "div1": "<b>OpenCode</b><span>Mã nguồn mở, chọn được nhiều model</span>",
+    "div2": "<b>GitHub Copilot</b><span>Chế độ agent trong VS Code</span>",
+    "div3": "<b>Antigravity</b><span>Google. IDE agent-first, CLI là <code>agy</code></span>",
+    "text1": "Đọc code, ngữ cảnh",
+    "text2": "Chạy lệnh, test",
+    "text3": "Bạn",
+    "text4": "duyệt"
+  },
+  "s11b": {
+    "alt": "Màn hình: Claude Code trong terminal chào “hi!” bên cạnh Chrome đang mở bộ slide này",
+    "cap": "Claude Code đang làm bộ slide này, ngay trên máy mình.",
+    "q": "LLM là bạn đồng hành mạnh mẽ, chứ không phải là thần đèn.",
+    "p": "Bạn vẫn là người hiểu vấn đề, đặt mục tiêu và chịu trách nhiệm cho code."
+  },
+  "s12": {
+    "div1": "Phần 3 / 4"
+  },
+  "s13": {
+    "h2": "Git là gì?",
+    "p1": "<b>Distributed version control system</b>: ghi lại lịch sử thay đổi của từng file trong dự án.",
+    "li1": "Linus Torvalds viết năm 2005 để quản lý source code của Linux kernel",
+    "li2": "Mỗi lần lưu là một <b>snapshot</b> toàn bộ dự án",
+    "li3": "Mỗi máy giữ đủ lịch sử, không cần mạng vẫn làm việc được",
+    "text1": "hiện tại"
+  },
+  "s14": {
+    "h2": "Tại sao cần Git?",
+    "li1": "Lịch sử: ai sửa gì, lúc nào, vì sao",
+    "li2": "Quay lại bản cũ khi lỡ tay",
+    "li3": "Làm nhóm không đè lên nhau",
+    "li4": "Thử nghiệm an toàn trên branch",
+    "no": "Không có Git",
+    "yes": "Có Git",
+    "c1": "sửa theo góp ý của Dũng",
+    "c2": "thêm phần kết luận",
+    "c3": "viết lại phần mở đầu",
+    "c4": "thêm bảng số liệu",
+    "c5": "bản nháp đầu tiên"
+  },
+  "s15": {
+    "h2": "commit và diff",
+    "p1": "Một lần “lưu” vào lịch sử: snapshot + tác giả + thời gian + lời nhắn. Mỗi commit có một mã hash riêng.",
+    "p2": "Phần khác nhau giữa hai phiên bản. Dòng <span class=\"g\">+</span> được thêm, dòng <span class=\"r\">−</span> bị xoá.",
+    "d1": "-  \"bio\": \"Mình thích code.\",",
+    "a1": "+  \"bio\": \"Mình thích code và cầu lông.\","
+  },
+  "s16": {
+    "h2": "branch và tag",
+    "p1": "<code class=\"o\">branch</code> là một hướng phát triển riêng. Làm feature mới trên branch, <code>main</code> vẫn an toàn.",
+    "p2": "<code class=\"r\">tag</code> là nhãn cố định gắn vào một commit, thường đánh dấu bản release như <code>v1.0</code>."
+  },
+  "s17": {
+    "text1": "máy của bạn",
+    "text2": "file bạn đang sửa",
+    "text3": "chờ commit"
+  },
+  "s18": {
+    "p1": "Tạo thêm merge commit <b class=\"g\">M</b>. Giữ nguyên lịch sử thật, an toàn, dễ hiểu. Mặc định nên dùng cái này.",
+    "p2": "Chép C, D thành C′, D′ đặt lên sau E. Lịch sử thẳng, gọn, nhưng <span class=\"r\">viết lại</span> commit: đừng rebase branch người khác đang dùng."
+  },
+  "s19": {
+    "h2": "Git là công cụ, còn đây là nơi lưu repo",
+    "p1": "Lớn nhất thế giới, trung tâm của mã nguồn mở. Thuộc Microsoft.",
+    "p2": "Mạnh về CI/CD, có thể self-host.",
+    "p3": "Của Atlassian, đi cùng Jira trong nhiều công ty.",
+    "p4": "Phi lợi nhuận, nhẹ, self-host dễ dàng.",
+    "p5": "Trong buổi hôm nay, chúng ta sẽ sử dụng GitHub. Repo <b>ftulabs.github.io</b> cũng nằm ở đây."
+  },
+  "s20": {
+    "h2": "Tạo tài khoản GitHub",
+    "b1": "Vào github.com/signup",
+    "p1": "Dùng email cá nhân bạn sẽ giữ lâu dài.",
+    "b2": "Chọn username nghiêm túc",
+    "p2": "Nó sẽ nằm trong CV và link portfolio của bạn.",
+    "p3": "Nhập code GitHub gửi về hộp thư.",
+    "b3": "Bật 2FA",
+    "p4": "Settings, Password and authentication. GitHub bắt buộc với người đóng góp code.",
+    "b4": "Nhận GitHub Student Developer Pack",
+    "p5": "education.github.com, xác minh bằng email trường: Copilot, JetBrains và nhiều thứ miễn phí.",
+    "f1": "Bước 4: bật 2FA",
+    "f2": "Bước 5: Student Developer Pack"
+  },
+  "s21": {
+    "h2": "Cài git và gh CLI",
+    "p1": "Mở lại terminal sau khi cài. Dùng Git Bash hoặc PowerShell.",
+    "p2": "Lệnh đầu cài sẵn git. Chưa có Homebrew thì cài từ brew.sh."
+  },
+  "s22": {
+    "h2": "Cấu hình một lần, dùng mãi",
+    "span1": "# tên và email gắn vào mọi commit",
+    "span2": "# đăng nhập GitHub qua trình duyệt",
+    "p1": "Email ở đây nên trùng email tài khoản GitHub để commit hiện đúng avatar của bạn.",
+    "p2": "Khi <code>gh auth login</code> hỏi, chọn GitHub.com, HTTPS, rồi đăng nhập bằng trình duyệt."
+  },
+  "s23": {
+    "div1": "Phần 4 / 4",
+    "h2": "Thực hành",
+    "div2": "<span>$ gh repo view</span> <span class=\"g\">ftulabs/ftulabs.github.io</span><br>30 phút, 1 commit, 1 pull request"
+  },
+  "s24": {
+    "h2": "Gửi pull request đầu tiên",
+    "p1": "Giới thiệu bản thân tại <b class=\"g\">ftulabs.github.io/k65-members</b>.",
+    "li1": "Chỉ thêm <b>1 file</b> của bạn: <code>k65/members/&lt;username&gt;.json</code>",
+    "li2": "Đúng <b>1 commit</b>: <code>feature: Add K65 member Tên Bạn</code>",
+    "li3": "<span class=\"g\">Được dùng LLM</span>, nhưng phải hiểu mình đã thêm gì",
+    "j1": "+   \"name\": \"Nguyễn Văn A\",",
+    "j2": "+   \"bio\": \"Một hai câu về bạn.\","
+  },
+  "s25": {
+    "h2": "Từ fork tới pull request",
+    "span1": "# 1. fork về tài khoản của bạn và clone xuống máy",
+    "span2": "# 2. tạo branch riêng",
+    "span3": "# 3. tạo file của bạn từ mẫu, rồi sửa trong IDE",
+    "span4": "# 4. commit đúng 1 lần",
+    "span5": "# 5. đẩy lên và mở PR",
+    "web": "Hoặc trên web:"
+  },
+  "s26": {
+    "h2": "Lỡ 3 commit? Gộp thành 1",
+    "span1": "c9e1f20 sửa lại typo",
+    "span2": "b47d3a1 thêm link github",
+    "span3": "a12f0e9 thêm thông tin",
+    "p1": "<code>reset --soft</code> bỏ các commit nhưng giữ nguyên nội dung file, để bạn commit lại một lần.",
+    "p2": "<code>gh repo fork --clone</code> đã tự thêm remote <code>upstream</code> trỏ về repo gốc.",
+    "p3": "Dùng <code>--force-with-lease</code> thay vì <code>--force</code>: an toàn hơn khi ghi đè branch của chính bạn."
+  },
+  "s27": {
+    "h2": "Trước khi bấm “Create pull request”",
+    "li1": "Tên file trùng GitHub username của bạn",
+    "li2": "JSON hợp lệ: check <b>K65 Members</b> trên PR báo xanh",
+    "li3": "Chỉ sửa đúng file của mình, không đụng file khác",
+    "li4": "PR chỉ có đúng 1 commit",
+    "li5": "Commit message dạng <code>feature: …</code>",
+    "li6": "Mô tả PR nói rõ bạn thêm gì"
+  },
+  "s28": {
+    "h2": "Hỏi đáp",
+    "div1": "<span>$ gh pr list --repo ftulabs/ftulabs.github.io --author @me</span><br>PR của bạn sẽ hiện ở đây. Chúc merge thành công."
+  },
+  "s09c": {
+    "r1": "Tất cả Opus 5.5",
+    "r2": "Thực tế: Opus + subagent Sonnet",
+    "r3": "Tất cả Sonnet 5.5",
+    "r4": "Tất cả Haiku 5.5",
+    "h2": "Bộ slide này tốn bao nhiêu?",
+    "h3": "Nếu trả theo giá API",
+    "pro": "Pro: $20/tháng",
+    "note": "Chính phiên này: 308 lượt gọi model, 71 triệu token. Giá API trên platform.claude.com, 30/10/2026.",
+    "h3b": "Gói tháng",
+    "pro2": "$20/tháng, có Claude Code",
+    "max": "$100 hoặc $200/tháng",
+    "h3c": "Ưu đãi sinh viên",
+    "s1": "Miễn phí qua Student Developer Pack",
+    "s2": "Miễn phí 1 năm, đăng ký trước 31/12/2026",
+    "s3": "Student Pack: 10 IDE miễn phí",
+    "s4": "Claude for Education: trường phải đăng ký"
+  }
+}

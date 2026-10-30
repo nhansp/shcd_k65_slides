@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1E2226">
+<title>Điều khiển slide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400..700&family=Google+Sans+Flex:wght@400..700&display=swap">
+<style>
+:root {
+    --bg: #1E2226;
+    --panel: #2A2F35;
+    --ink: #F2F4F6;
+    --muted: #9AA1AA;
+    --green: #34A853;
+    --orange: #E8710A;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--ink); font-family: "Google Sans Flex", system-ui, sans-serif; overscroll-behavior: none; }
+body {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 12px;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+#clock { font: 700 44px/1 "Google Sans Code", monospace; letter-spacing: -0.02em; }
+#pos { font: 500 20px "Google Sans Code", monospace; color: var(--muted); text-align: right; }
+#pos b { color: var(--ink); font-weight: 600; }
+#dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--muted); margin-right: 8px; vertical-align: 2px; }
+#dot.on { background: var(--green); }
+
+/* prev | current | next */
+.views { display: grid; grid-template-columns: 1fr 2.2fr 1fr; gap: 10px; align-items: center; min-height: 0; }
+.view { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.view small { font: 500 13px "Google Sans Code", monospace; color: var(--muted); }
+.view.cur small { color: var(--orange); }
+.frame { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #fff; border-radius: 6px; overflow: hidden; }
+.view.cur .frame { outline: 3px solid var(--orange); outline-offset: 2px; }
+.frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; }
+.frame.none { background: var(--panel); }
+.frame.none iframe { visibility: hidden; }
+
+/* portrait phone: current on top, prev/next under it */
+@media (orientation: portrait) {
+    .views { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; align-content: center; }
+    .view.cur { grid-column: 1 / -1; order: -1; }
+}
+
+.btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.btns button {
+    height: 22vh; min-height: 96px; max-height: 180px;
+    border: 0; border-radius: 14px;
+    font: 700 56px/1 "Google Sans Flex", system-ui, sans-serif;
+    color: var(--ink); background: var(--panel);
+    touch-action: manipulation;
+}
+.btns button.next { background: var(--orange); color: #fff; }
+.btns button:active { filter: brightness(1.25); transform: scale(.98); }
+@media (orientation: landscape) and (max-height: 500px) {
+    body { gap: 8px; }
+    .btns button { height: 18vh; min-height: 56px; font-size: 40px; }
+    #clock { font-size: 32px; }
+    /* keep the current slide inside the space between header and buttons */
+    .view.cur .frame { width: min(100%, calc((100vh - 190px) * 16 / 9)); margin: 0 auto; }
+}
+</style>
+</head>
+<body>
+<header>
+    <div id="clock">--:--</div>
+    <div id="pos"><span id="dot"></span><b id="slide">–</b> / <span id="total">–</span><span id="page"></span></div>
+</header>
+
+<main class="views">
+    <div class="view"><small>trước</small><div class="frame" id="f-prev"><iframe tabindex="-1" title="Slide trước"></iframe></div></div>
+    <div class="view cur"><small>đang chiếu</small><div class="frame" id="f-cur"><iframe tabindex="-1" title="Slide hiện tại"></iframe></div></div>
+    <div class="view"><small>tiếp theo</small><div class="frame" id="f-next"><iframe tabindex="-1" title="Slide tiếp theo"></iframe></div></div>
+</main>
+
+<div class="btns">
+    <button class="prev" aria-label="Slide trước">‹</button>
+    <button class="next" aria-label="Slide tiếp theo">›</button>
+</div>
+
+<script>
+(function () {
+    const $ = id => document.getElementById(id);
+    let st = { slide: 1, page: 0, pages: 1, total: 0 };
+
+    // previews are full copies of the deck in ?preview mode; moving between them is just a hash change
+    function frame(id, hash) {
+        const f = $(id), ifr = f.querySelector("iframe");
+        f.classList.toggle("none", !hash);
+        if (!hash) return;
+        const url = "/index.html?preview#" + hash;
+        if (!ifr.src) ifr.src = url;
+        else if (ifr.contentWindow) ifr.contentWindow.location.hash = hash;
+    }
+
+    function render() {
+        $("slide").textContent = st.slide;
+        $("total").textContent = st.total || "–";
+        $("page").textContent = st.pages > 1 ? `  ·  ${st.page + 1}/${st.pages}` : "";
+        const cur = st.slide + "." + st.page;
+        const prev = st.page > 0 ? st.slide + "." + (st.page - 1) : (st.slide > 1 ? (st.slide - 1) + ".L" : null);
+        const next = st.page < st.pages - 1 ? st.slide + "." + (st.page + 1) : (st.slide < st.total ? (st.slide + 1) + ".0" : null);
+        frame("f-prev", prev);
+        frame("f-cur", cur);
+        frame("f-next", next);
+    }
+
+    function send(cmd) {
+        if (navigator.vibrate) navigator.vibrate(15);
+        fetch("/api/cmd", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cmd }) });
+    }
+    document.querySelector(".prev").addEventListener("click", () => send("prev"));
+    document.querySelector(".next").addEventListener("click", () => send("next"));
+    addEventListener("keydown", e => {
+        if (["ArrowRight", "PageDown", " "].includes(e.key)) send("next");
+        else if (["ArrowLeft", "PageUp"].includes(e.key)) send("prev");
+    });
+
+    function connect() {
+        const es = new EventSource("/api/events");
+        es.onopen = () => { $("dot").classList.add("on"); fetch("/api/cmd", { method: "POST", headers: { "Content-Type": "application/json" }, body: '{"cmd":"sync"}' }); };
+        es.addEventListener("state", e => { st = JSON.parse(e.data); render(); });
+        es.onerror = () => { $("dot").classList.remove("on"); };
+    }
+    connect();
+
+    function tick() {
+        const d = new Date();
+        $("clock").textContent = d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", hour12: false });
+    }
+    tick();
+    setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>
