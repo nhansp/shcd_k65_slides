@@ -19,23 +19,31 @@
 html, body { height: 100%; background: var(--bg); color: var(--ink); font-family: "Google Sans Flex", system-ui, sans-serif; overscroll-behavior: none; }
 body {
     display: grid;
-    grid-template-rows: auto 1fr auto;
     gap: 12px;
-    padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
     user-select: none;
     -webkit-user-select: none;
+    /* landscape (the sketch): big current slide left; time, prev|next, ‹|›, fullscreen on the right */
+    grid-template-columns: 1.15fr 0.5fr 0.5fr;
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-areas:
+        "cur  head head"
+        "cur  prev next"
+        "cur  bp   bn"
+        "cur  .    fs";
+    align-items: start;
 }
-
-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+header { grid-area: head; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 #clock { font: 700 44px/1 "Google Sans Code", monospace; letter-spacing: -0.02em; }
-#pos { font: 500 20px "Google Sans Code", monospace; color: var(--muted); text-align: right; }
+#pos { font: 500 18px "Google Sans Code", monospace; color: var(--muted); text-align: right; }
 #pos b { color: var(--ink); font-weight: 600; }
 #dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--muted); margin-right: 8px; vertical-align: 2px; }
 #dot.on { background: var(--green); }
 
-/* prev | current | next */
-.views { display: grid; grid-template-columns: 1fr 2.2fr 1fr; gap: 10px; align-items: center; min-height: 0; }
 .view { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.view.cur { grid-area: cur; align-self: center; }
+.view.prev { grid-area: prev; }
+.view.next { grid-area: next; }
 .view small { font: 500 13px "Google Sans Code", monospace; color: var(--muted); }
 .view.cur small { color: var(--orange); }
 .frame { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #fff; border-radius: 6px; overflow: hidden; }
@@ -44,28 +52,31 @@ header { display: flex; align-items: baseline; justify-content: space-between; g
 .frame.none { background: var(--panel); }
 .frame.none iframe { visibility: hidden; }
 
-/* portrait phone: current on top, prev/next under it */
-@media (orientation: portrait) {
-    .views { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; align-content: center; }
-    .view.cur { grid-column: 1 / -1; order: -1; }
-}
-
-.btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.btns button {
-    height: 22vh; min-height: 96px; max-height: 180px;
+.nav {
+    align-self: stretch;
     border: 0; border-radius: 14px;
     font: 700 56px/1 "Google Sans Flex", system-ui, sans-serif;
     color: var(--ink); background: var(--panel);
     touch-action: manipulation;
 }
-.btns button.next { background: var(--orange); color: #fff; }
-.btns button:active { filter: brightness(1.25); transform: scale(.98); }
-@media (orientation: landscape) {
-    body { gap: 8px; }
-    .btns button { height: 20dvh; min-height: 56px; font-size: 40px; }
-    #clock { font-size: 32px; }
-    /* fit the current slide between header and buttons: 100dvh - buttons - header/labels/gaps */
-    .view.cur .frame { width: min(100%, calc((80dvh - 120px) * 16 / 9)); margin: 0 auto; }
+.nav.prev { grid-area: bp; }
+.nav.next { grid-area: bn; background: var(--orange); color: #fff; }
+.nav:active { filter: brightness(1.25); transform: scale(.98); }
+#fs {
+    grid-area: fs; justify-self: end;
+    width: 48px; height: 36px;
+    border: 1.5px solid var(--muted); border-radius: 8px; background: none;
+    color: var(--muted); font: 600 13px "Google Sans Code", monospace;
+}
+
+/* portrait fallback: stacked */
+@media (orientation: portrait) {
+    body {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto auto 1fr auto;
+        grid-template-areas: "head head" "cur cur" "prev next" "bp bn" ". fs";
+    }
+    .nav { min-height: 120px; }
 }
 </style>
 </head>
@@ -75,16 +86,13 @@ header { display: flex; align-items: baseline; justify-content: space-between; g
     <div id="pos"><span id="dot"></span><b id="slide">–</b> / <span id="total">–</span><span id="page"></span></div>
 </header>
 
-<main class="views">
-    <div class="view"><small>trước</small><div class="frame" id="f-prev"><iframe tabindex="-1" title="Slide trước"></iframe></div></div>
-    <div class="view cur"><small>đang chiếu</small><div class="frame" id="f-cur"><iframe tabindex="-1" title="Slide hiện tại"></iframe></div></div>
-    <div class="view"><small>tiếp theo</small><div class="frame" id="f-next"><iframe tabindex="-1" title="Slide tiếp theo"></iframe></div></div>
-</main>
+<div class="view cur"><small>đang chiếu</small><div class="frame" id="f-cur"><iframe tabindex="-1" title="Slide hiện tại"></iframe></div></div>
+<div class="view prev"><small>trước</small><div class="frame" id="f-prev"><iframe tabindex="-1" title="Slide trước"></iframe></div></div>
+<div class="view next"><small>tiếp theo</small><div class="frame" id="f-next"><iframe tabindex="-1" title="Slide tiếp theo"></iframe></div></div>
 
-<div class="btns">
-    <button class="prev" aria-label="Slide trước">‹</button>
-    <button class="next" aria-label="Slide tiếp theo">›</button>
-</div>
+<button class="nav prev" aria-label="Slide trước">‹</button>
+<button class="nav next" aria-label="Slide tiếp theo">›</button>
+<button id="fs" aria-label="Toàn màn hình">F11</button>
 
 <script>
 (function () {
@@ -117,7 +125,7 @@ header { display: flex; align-items: baseline; justify-content: space-between; g
         if (navigator.vibrate) navigator.vibrate(15);
         fetch("/api/cmd", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cmd }) });
     }
-    // fullscreen needs a tap: the clock toggles it, and the first ‹ › press enters it
+    // fullscreen needs a tap: the F11 button (or the clock) toggles it, the first ‹ › press enters it
     function fullscreen(on) {
         const d = document.documentElement;
         if (on && !document.fullscreenElement && d.requestFullscreen)
@@ -125,8 +133,9 @@ header { display: flex; align-items: baseline; justify-content: space-between; g
         else if (!on && document.fullscreenElement) document.exitFullscreen();
     }
     $("clock").addEventListener("click", () => fullscreen(!document.fullscreenElement));
-    document.querySelector(".prev").addEventListener("click", () => { fullscreen(true); send("prev"); });
-    document.querySelector(".next").addEventListener("click", () => { fullscreen(true); send("next"); });
+    $("fs").addEventListener("click", () => fullscreen(!document.fullscreenElement));
+    document.querySelector(".nav.prev").addEventListener("click", () => { fullscreen(true); send("prev"); });
+    document.querySelector(".nav.next").addEventListener("click", () => { fullscreen(true); send("next"); });
     addEventListener("keydown", e => {
         if (["ArrowRight", "PageDown", " "].includes(e.key)) send("next");
         else if (["ArrowLeft", "PageUp"].includes(e.key)) send("prev");
