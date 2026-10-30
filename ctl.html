@@ -104,9 +104,16 @@ header { grid-area: head; display: flex; align-items: baseline; justify-content:
         const f = $(id), ifr = f.querySelector("iframe");
         f.classList.toggle("none", !hash);
         if (!hash) return;
-        const url = "/index.html?preview#" + hash;
-        if (!ifr.src) ifr.src = url;
-        else if (ifr.contentWindow) ifr.contentWindow.location.hash = hash;
+        // a hash set while the iframe is still loading gets lost, so remember it and re-apply on load
+        ifr.dataset.want = hash;
+        if (!ifr.src) {
+            ifr.addEventListener("load", () => {
+                ifr.dataset.loaded = "1";
+                const w = ifr.contentWindow;
+                if (w.location.hash !== "#" + ifr.dataset.want) w.location.hash = ifr.dataset.want;
+            });
+            ifr.src = "/index.html?preview#" + hash;
+        } else if (ifr.dataset.loaded) ifr.contentWindow.location.hash = hash;
     }
 
     function render() {

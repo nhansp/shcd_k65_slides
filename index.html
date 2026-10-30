@@ -561,6 +561,45 @@ svg .fname.struck { fill: var(--red); text-decoration: line-through; }
 /* /ctl preview copies */
 .preview .progress { display: none; }
 
+/* code::blocks note, junk examples, github feature cards */
+.more-note { margin-top: 24px; }
+.more-note .more-list { font: 500 22px/1.4 var(--f-head); }
+ul.plain.tight li { font-size: 25px; line-height: 1.4; margin-bottom: 12px; }
+ul.plain.tight code { font-size: 22px; }
+.junk-ex { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; margin-top: 12px; }
+.junk-ex > div { border-left: 4px solid var(--green); padding: 2px 0 2px 22px; font-size: 23px; line-height: 1.4; color: var(--graphite); }
+.junk-ex > div.bad { border-color: var(--red); }
+.junk-ex code { font-size: 20px; }
+.gh-pages .page { gap: 48px; }
+.gh-card { margin: 0; }
+.gh-card img { display: block; width: 100%; height: 450px; object-fit: cover; object-position: left top; border: 1.5px solid var(--ink); background: var(--faint); }
+.gh-card figcaption { margin-top: 14px; display: flex; flex-direction: column; gap: 4px; }
+.gh-card b { font-family: var(--f-head); font-weight: 640; font-size: 34px; }
+.gh-card span { font-size: 24px; line-height: 1.35; color: var(--graphite); }
+
+/* live phone mirror (mirror.sh + serve.py /mirror.mjpg); skin = Android Studio pixel_8_pro device art */
+.mirror-note { display: flex; align-items: center; gap: 12px; margin-top: -26px; }
+.live-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 4px var(--red-soft); }
+@media (prefers-reduced-motion: no-preference) {
+    .slide.is-active .live-dot { animation: live 1.6s ease-in-out infinite; }
+}
+@keyframes live { 50% { opacity: .35; } }
+.phone-stage { position: absolute; left: 150px; right: 150px; top: 340px; bottom: 130px; z-index: 2; }
+.phone {
+    position: relative;
+    position: absolute; left: 50%; top: 50%;
+    width: 1469px; height: 3104px;          /* skin's native size, scaled by JS */
+    transform: translate(-50%, -50%) rotate(0deg) scale(.2);
+    transition: transform .6s cubic-bezier(.3, .7, .2, 1);
+}
+.phone-back { position: absolute; inset: 0; width: 100%; height: 100%; }
+.phone-screen {
+    position: absolute; left: 58px; top: 58px; width: 1344px; height: 2992px;
+    object-fit: fill; background: #000;
+}
+/* the skin's "mask" is a foreground overlay: rounded corners + punch hole drawn over the screen */
+.phone-fg { position: absolute; left: 58px; top: 58px; width: 1344px; height: 2992px; pointer-events: none; }
+
 /* misc components */
 .callout {
     border-left: 4px solid var(--orange);
@@ -883,7 +922,7 @@ svg .fname.struck { fill: var(--red); text-decoration: line-through; }
             <div>
                 <h2 data-i18n="s05.h2">GUI-based</h2>
                 <p class="lede" style="font-size:30px" data-i18n="s05.p1">Có cửa sổ, menu, dùng chuột. Dễ làm quen, nhiều tính năng tích hợp sẵn.</p>
-                <div class="ide-icons">
+                <div class="ide-icons" style="margin-top:30px">
                     <button class="ico" data-page="0" title="VS Code" aria-label="VS Code"><img src="res/Visual_Studio_Code_1.35_icon.svg" alt=""></button>
                     <button class="ico" data-page="0" title="Cursor" aria-label="Cursor"><img src="res/cursor.svg" alt=""></button>
                     <button class="ico" data-page="1" title="Antigravity" aria-label="Antigravity"><img src="res/antigravity.png" alt=""></button>
@@ -891,7 +930,10 @@ svg .fname.struck { fill: var(--red); text-decoration: line-through; }
                     <button class="ico" data-page="2" title="IntelliJ IDEA" aria-label="IntelliJ IDEA"><img src="res/IntelliJ_IDEA_Icon.svg" alt=""></button>
                     <button class="ico" data-page="2" title="Android Studio" aria-label="Android Studio"><img src="res/android-studio.svg" alt=""></button>
                     <button class="ico" data-page="3" title="Xcode" aria-label="Xcode"><img src="res/Xcode.svg" alt=""></button>
-                    <span class="ico-more">…</span>
+                    <button class="ico" data-page="3" title="Code::Blocks" aria-label="Code::Blocks"><img src="res/codeblocks.png" alt=""></button>
+                </div>
+                <div class="more-note">
+                    <p class="more-list"><span class="muted" data-i18n="s05.m1">Còn nữa:</span> Visual Studio, Eclipse, Sublime Text, Kate, Fleet, …</p>
                 </div>
             </div>
             <div class="pages">
@@ -930,12 +972,9 @@ svg .fname.struck { fill: var(--red); text-decoration: line-through; }
                         <img src="res/shots/xcode.png" alt="Xcode">
                         <figcaption><b>Xcode</b><span data-i18n="s05.c5">Apple. Chỉ chạy trên Mac</span></figcaption>
                     </figure>
-                    <figure class="shot-card more-card">
-                        <div class="qv">
-                            <p class="small muted" data-i18n="s05.m1">Còn nữa:</p>
-                            <p class="more-list">Visual Studio, Eclipse, Sublime Text, Kate, Fleet, …</p>
-                            <p class="small muted" data-i18n="s05.m2">Chọn cái nào cũng được, quan trọng là dùng thạo.</p>
-                        </div>
+                    <figure class="shot-card">
+                        <img src="res/shots/codeblocks.png" alt="Code::Blocks">
+                        <figcaption><b>Code::Blocks</b><span data-i18n="s05.c8">Nhẹ, quen thuộc trong lập trình thi đấu C++</span></figcaption>
                     </figure>
                 </div>
                 <div class="pager" aria-hidden="true"><i></i><i></i><i></i><i></i><span></span></div>
@@ -1278,6 +1317,39 @@ svg .fname.struck { fill: var(--red); text-decoration: line-through; }
     </div>
 </section>
 
+<!-- ===================== 11a. ĐỪNG XẢ RÁC ===================== -->
+<section class="slide" data-sec="llm" data-quiet>
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/llm</span>$ cat AGENTS.md</div>
+        <h2 data-i18n="s11c.h2">Đừng để hệ thống bị xả rác</h2>
+        <div class="cols c2" style="gap:64px; flex:none">
+            <div>
+                <p class="small muted" style="margin-bottom:22px" data-i18n="s11c.p1">Agent chạy lệnh ngay trên máy bạn. Bắt nó giữ môi trường sạch.</p>
+                <ul class="plain green tight">
+                    <li data-i18n="s11c.l1">Python luôn trong venv: <code>python -m venv .venv</code> hoặc <code>uv</code>. Không <code>sudo pip install</code>, không cài global.</li>
+                    <li data-i18n="s11c.l2">File tạm để ở <code>/tmp</code> (Linux, macOS) hoặc <code>%TEMP%</code> (Windows), đừng để trong home hay project.</li>
+                    <li data-i18n="s11c.l3">Nói luật này ngay từ đầu, ghi vào <code>CLAUDE.md</code> hoặc <code>AGENTS.md</code>.</li>
+                    <li data-i18n="s11c.l4">Xong việc thì xem lại: process còn chạy, package đã cài.</li>
+                </ul>
+            </div>
+            <div class="term" style="font-size:22px">
+                <div class="t-head"><i></i><i></i><i></i><span>agent</span></div>
+<pre><span class="c" data-i18n="s11c.c1"># đừng</span>
+<span class="del">-sudo pip install requests</span><span class="del">-pip install -r requirements.txt</span><span class="del">-echo test &gt; ~/project/tmp.txt</span><span class="c" data-i18n="s11c.c2"># nên</span>
+<span class="add">+python -m venv .venv</span><span class="add">+.venv/bin/pip install requests</span><span class="add">+echo test &gt; /tmp/test.txt</span><span class="c" data-i18n="s11c.c3"># xong việc, kiểm tra</span>
+<span class="pr">$</span> pgrep -af chrome
+<span class="pr">$</span> pip list --user</pre>
+            </div>
+        </div>
+        <p class="small muted" style="margin-top:30px" data-i18n="s11c.ex">Từ buổi làm bộ slide này, bằng Claude Code:</p>
+        <div class="junk-ex">
+            <div data-i18n="s11c.e1">Tốt: mọi file tạm nằm trong một thư mục scratchpad dưới <code>/tmp</code>.</div>
+            <div class="bad" data-i18n="s11c.e2">Chưa tốt: để chụp màn hình desktop, agent cài <code>ydotool</code> và <code>gnome-screenshot</code> vào hệ thống bằng <code>sudo</code>.</div>
+            <div class="bad" data-i18n="s11c.e3">Chưa tốt: một Chrome headless do agent phụ mở bị treo hơn một tiếng, đến khi mình tìm ra và kill.</div>
+        </div>
+    </div>
+</section>
+
 <!-- ===================== 11b. KẾT LLM ===================== -->
 <section class="slide" data-sec="llm" data-quiet>
     <div class="content">
@@ -1291,6 +1363,22 @@ svg .fname.struck { fill: var(--red); text-decoration: line-through; }
                 <p class="genie" data-i18n="s11b.q">LLM là bạn đồng hành mạnh mẽ, chứ không phải là thần đèn.</p>
                 <p class="small muted" style="margin-top:28px" data-i18n="s11b.p">Bạn vẫn là người hiểu vấn đề, đặt mục tiêu và chịu trách nhiệm cho code.</p>
             </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 11c. PIXEL TRỰC TIẾP ===================== -->
+<section class="slide mirror-slide" data-sec="llm" data-quiet>
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~</span>$ scrcpy -s pixel --v4l2-sink=/dev/video10</div>
+        <h2 data-i18n="s11m.h2">Pixel của mình, ngay lúc này</h2>
+        <p class="small muted mirror-note"><span class="live-dot"></span><span data-i18n="s11m.p1">Màn hình điện thoại đang điều khiển slide, truyền qua 5G và WireGuard.</span></p>
+    </div>
+    <div class="phone-stage">
+        <div class="phone" data-rot="0">
+            <img class="phone-back" src="res/p8p/back.webp" alt="">
+            <img class="phone-screen" alt="Màn hình Pixel 8 Pro trực tiếp" data-i18n-alt="s11m.alt">
+            <img class="phone-fg" src="res/p8p/mask.png" alt="">
         </div>
     </div>
 </section>
@@ -1445,6 +1533,67 @@ Date:   Thu Oct 30 14:05 2026
     </div>
 </section>
 
+<!-- ===================== 15b. COMMIT HOẠT ĐỘNG THẾ NÀO ===================== -->
+<section class="slide" data-sec="git">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/git</span>$ git add . &amp;&amp; git commit</div>
+        <h2 data-i18n="s15b.h2">git commit làm gì?</h2>
+        <svg class="dia sweep" viewBox="0 0 1620 610" width="1620" height="610" aria-label="Từ working directory qua staging area thành commit, rồi main dịch lên commit mới" data-i18n-alt="s15b.alt">
+            <g class="mono sm" text-anchor="start">
+                <text x="0" y="22">working directory</text>
+                <text x="420" y="22">staging area (index)</text>
+                <text x="830" y="22">commit object</text>
+            </g>
+            <g fill="none" stroke="var(--ink)" stroke-width="2.5">
+                <rect x="0" y="40" width="280" height="190"/>
+                <rect x="420" y="40" width="280" height="190" stroke="var(--green)"/>
+                <rect x="830" y="40" width="590" height="190" fill="var(--green-soft)" stroke="var(--green)"/>
+            </g>
+            <circle cx="30" cy="92" r="7" fill="var(--orange)" stroke="none"/><text x="52" y="99" class="mono" font-size="21">index.html</text>
+            <circle cx="30" cy="142" r="7" fill="var(--orange)" stroke="none"/><text x="52" y="149" class="mono" font-size="21">a.json</text>
+            <circle cx="30" cy="192" r="7" fill="var(--orange)" stroke="none"/><text x="52" y="199" class="mono" font-size="21">style.css</text>
+            <circle cx="450" cy="92" r="7" fill="var(--green)" stroke="none"/><text x="472" y="99" class="mono" font-size="21">index.html</text>
+            <circle cx="450" cy="142" r="7" fill="var(--green)" stroke="none"/><text x="472" y="149" class="mono" font-size="21">a.json</text>
+            <line x1="290" y1="135" x2="398" y2="135" stroke="var(--ink)" stroke-width="3"/><path d="M396 126 L410 135 L396 144 Z" fill="var(--ink)"/>
+            <line x1="710" y1="135" x2="808" y2="135" stroke="var(--ink)" stroke-width="3"/><path d="M806 126 L820 135 L806 144 Z" fill="var(--ink)"/>
+            <text x="350" y="110" text-anchor="middle" class="ann">git add</text>
+            <text x="765" y="110" text-anchor="middle" class="ann">git commit</text>
+            <text x="560" y="262" text-anchor="middle" class="sm" data-i18n="s15b.t1">style.css chưa add: không vào commit này</text>
+            <g class="mono" font-size="21">
+                <text x="852" y="82" fill="var(--green)" font-weight="700">commit 3f9c2ab</text>
+                <text x="852" y="120">tree    9b1e5d0</text><text x="1112" y="120" fill="var(--green)" font-family="var(--f-body)" data-i18n="s15b.t2">← snapshot cả thư mục</text>
+                <text x="852" y="154">parent  a41d7e0</text><text x="1112" y="154" fill="var(--green)" font-family="var(--f-body)" data-i18n="s15b.t3">← commit trước đó</text>
+                <text x="852" y="188">author  Nguyen Van A</text>
+                <text x="852" y="216">message fix: Update K65 bio</text>
+            </g>
+            <line x1="1280" y1="230" x2="1280" y2="410" stroke="var(--green)" stroke-width="2" stroke-dasharray="6 6"/>
+            <line x1="1054" y1="440" x2="900" y2="440" stroke="var(--ink)" stroke-width="3"/>
+            <line x1="1254" y1="440" x2="1106" y2="440" stroke="var(--ink)" stroke-width="3"/>
+            <g fill="#fff" stroke-width="3">
+                <circle cx="874" cy="440" r="26" stroke="var(--ink)"/>
+                <circle cx="1080" cy="440" r="26" stroke="var(--ink)"/>
+                <circle cx="1280" cy="440" r="28" stroke="var(--green)" fill="var(--green-soft)"/>
+            </g>
+            <g class="mono sm" text-anchor="middle">
+                <text x="1080" y="398">a41d7e0</text><text x="1322" y="447" text-anchor="start" fill="var(--green)">3f9c2ab</text>
+            </g>
+            <rect x="1030" y="536" width="100" height="40" fill="#fff" stroke="var(--rule)" stroke-width="2" stroke-dasharray="5 5"/>
+            <text x="1080" y="564" text-anchor="middle" class="mono" font-size="21" fill="var(--gray)">main</text>
+            <line x1="1080" y1="536" x2="1080" y2="470" stroke="var(--rule)" stroke-width="2" stroke-dasharray="5 5"/>
+            <rect x="1230" y="536" width="100" height="40" fill="var(--green)" stroke="var(--green)" stroke-width="2"/>
+            <text x="1280" y="564" text-anchor="middle" class="mono" font-size="21" fill="#fff">main</text>
+            <line x1="1280" y1="536" x2="1280" y2="474" stroke="var(--green)" stroke-width="3"/>
+            <path d="M1138 556 H1222" fill="none" stroke="var(--orange)" stroke-width="3"/><path d="M1220 547 L1232 556 L1220 565 Z" fill="var(--orange)"/>
+            <g class="lbl" font-size="24">
+                <text x="0" y="408" data-i18n="s15b.s1">1. Sửa file trong working directory.</text>
+                <text x="0" y="458" data-i18n="s15b.s2">2. git add: chọn file đưa vào staging area.</text>
+                <text x="0" y="508" data-i18n="s15b.s3">3. git commit: đóng gói staging thành commit mới.</text>
+                <text x="0" y="558" data-i18n="s15b.s4">4. main nhảy lên commit mới, parent trỏ về commit cũ.</text>
+            </g>
+        </svg>
+    </div>
+</section>
+
 <!-- ===================== 16. BRANCH + TAG ===================== -->
 <section class="slide" data-sec="git" data-quiet>
     <div class="content">
@@ -1585,6 +1734,35 @@ Date:   Thu Oct 30 14:05 2026
     </div>
 </section>
 
+<!-- ===================== 18b. MERGE CONFLICT ===================== -->
+<section class="slide" data-sec="git">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/git</span>$ git merge feature/bio</div>
+        <h2 data-i18n="s18b.h2">Merge conflict</h2>
+        <div class="cols c2" style="grid-template-columns: 1fr 840px; gap: 64px; flex:none">
+            <div>
+                <p class="small" style="margin-bottom:24px" data-i18n="s18b.p1">Hai branch cùng sửa <b>cùng dòng</b> của một file. Git không đoán được nên dừng lại và hỏi bạn.</p>
+                <h3 data-i18n="s18b.h3">Cách giải</h3>
+                <ul class="plain small">
+                    <li data-i18n="s18b.l1">Mở file, tìm các dấu <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>.</li>
+                    <li data-i18n="s18b.l2">Giữ phần đúng (hoặc trộn cả hai), xoá 3 dòng dấu.</li>
+                    <li data-i18n="s18b.l3"><code>git add</code> file đó, rồi <code>git commit</code>.</li>
+                </ul>
+            </div>
+            <div class="term" style="font-size:21px">
+                <div class="t-head"><i></i><i></i><i></i><span>k65/members/a.json</span></div>
+<pre><span class="pr">$</span> git merge feature/bio
+<span class="r">CONFLICT (content): Merge conflict in a.json</span>
+
+<span class="hl">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span>
+<span class="add">  "bio": "Mình thích code.",</span><span class="hl">=======</span>
+<span class="del">  "bio": "Mình thích cầu lông.",</span><span class="hl">&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/bio</span></pre>
+            </div>
+        </div>
+        <p class="callout green" style="margin-top:36px; max-width:none; font-size:30px" data-i18n="s18b.p2">Bài thực hành K65: mỗi bạn chỉ thêm file <code>k65/members/&lt;username&gt;.json</code> của riêng mình, nên PR của các bạn sẽ không bị conflict với nhau.</p>
+    </div>
+</section>
+
 <!-- ===================== 19. NỀN TẢNG ===================== -->
 <section class="slide" data-sec="git">
     <div class="content">
@@ -1599,6 +1777,37 @@ Date:   Thu Oct 30 14:05 2026
         <div class="cols" style="grid-template-columns: 1fr 760px; gap: 56px; margin-top: 48px; align-items: start;">
             <p class="callout green" data-i18n="s19.p5">Trong buổi hôm nay, chúng ta sẽ sử dụng GitHub. Repo <b>ftulabs.github.io</b> cũng nằm ở đây.</p>
             <img class="shot-sm shot-crop" src="res/shots/repo-ftulabs.png" alt="Repo ftulabs/ftulabs.github.io trên GitHub">
+        </div>
+    </div>
+</section>
+
+<!-- ===================== 19b. TÍNH NĂNG GITHUB ===================== -->
+<section class="slide paged" data-sec="git">
+    <div class="content">
+        <div class="path"><span class="p-user">k65@ftds.ftu</span>:<span class="p-dir">~/git</span>$ gh browse</div>
+        <h2 data-i18n="s19b.h2">Bốn thứ cần biết trên GitHub</h2>
+        <div class="pages gh-pages">
+            <div class="page">
+                    <figure class="gh-card">
+                        <img src="res/shots/gh-org.png" alt="Trang tổ chức ftulabs trên GitHub">
+                        <figcaption><b>Organizations</b><span data-i18n="s19b.c1">Tài khoản chung cho nhóm: nhiều repo, nhiều thành viên. Ví dụ: ftulabs.</span></figcaption>
+                    </figure>
+                    <figure class="gh-card">
+                        <img src="res/shots/gh-issues.png" alt="Danh sách Issues của repo astral-sh/uv">
+                        <figcaption><b>Issues</b><span data-i18n="s19b.c2">Nơi báo lỗi, đề xuất tính năng, trao đổi công việc. Ví dụ: repo uv.</span></figcaption>
+                    </figure>
+            </div>
+            <div class="page">
+                    <figure class="gh-card">
+                        <img src="res/shots/gh-pr.png" alt="Pull request #21 của ftulabs.github.io">
+                        <figcaption><b>Pull requests</b><span data-i18n="s19b.c3">Đề nghị gộp branch của bạn vào repo, để người khác xem và duyệt. Đây là PR #21 thêm trang K65.</span></figcaption>
+                    </figure>
+                    <figure class="gh-card">
+                        <img src="res/shots/gh-actions.png" alt="Tab Actions của ftulabs.github.io">
+                        <figcaption><b>Actions</b><span data-i18n="s19b.c4">Tự chạy workflow khi có push hoặc PR: kiểm tra file, build, deploy.</span></figcaption>
+                    </figure>
+            </div>
+            <div class="pager" aria-hidden="true"><i></i><i></i><span></span></div>
         </div>
     </div>
 </section>
@@ -2140,6 +2349,36 @@ Date:   Thu Oct 30 14:05 2026
             else if (c.cmd === "goto") go("#" + c.to);
             else if (c.cmd === "sync") report();
         });
+    }
+
+
+    // live phone mirror: stream only while the slide is on screen, follow the phone's rotation
+    const mirrorSlide = deck.querySelector(".mirror-slide");
+    if (mirrorSlide && location.protocol.startsWith("http")) {
+        const phone = mirrorSlide.querySelector(".phone");
+        const screen = mirrorSlide.querySelector(".phone-screen");
+        const stage = mirrorSlide.querySelector(".phone-stage");
+        let timer = null;
+        function place(r) {
+            // Android rotation r turns the UI 90°·r counter-clockwise; capture stays portrait, so undo it here
+            const W = stage.clientWidth, H = stage.clientHeight, side = r % 2 === 1;
+            const k = side ? Math.min(W / 3104, H / 1469) : Math.min(W / 1469, H / 3104);
+            phone.style.transform = "translate(-50%, -50%) rotate(" + (-90 * r) + "deg) scale(" + k.toFixed(4) + ")";
+        }
+        function poll() {
+            fetch("/api/rot").then(r => r.json()).then(d => place(d.rot)).catch(() => {});
+        }
+        new MutationObserver(() => {
+            const on = mirrorSlide.classList.contains("is-active");
+            if (on && !timer) {
+                screen.src = "/mirror.mjpg?t=" + Date.now();
+                place(0); poll();
+                timer = setInterval(poll, 700);
+            } else if (!on && timer) {
+                clearInterval(timer); timer = null;
+                screen.removeAttribute("src");
+            }
+        }).observe(mirrorSlide, { attributes: true, attributeFilter: ["class"] });
     }
 
     loadStrings().then(() => {

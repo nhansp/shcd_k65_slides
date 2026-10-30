@@ -53,7 +53,7 @@
     "c6": "Viết bằng Rust, mở file cực nhanh",
     "c7": "Google. Giao việc cho nhiều agent cùng lúc",
     "m1": "Còn nữa:",
-    "m2": "Chọn cái nào cũng được, quan trọng là dùng thạo."
+    "c8": "Nhẹ, quen thuộc trong lập trình thi đấu C++"
   },
   "s06tui": {
     "h2": "TUI-based",
@@ -137,6 +137,26 @@
     "text3": "Bạn",
     "text4": "duyệt"
   },
+  "s11c": {
+    "h2": "Đừng để hệ thống bị xả rác",
+    "p1": "Agent chạy lệnh ngay trên máy bạn. Bắt nó giữ môi trường sạch.",
+    "l1": "Python luôn trong venv: <code>python -m venv .venv</code> hoặc <code>uv</code>. Không <code>sudo pip install</code>, không cài global.",
+    "l2": "File tạm để ở <code>/tmp</code> (Linux, macOS) hoặc <code>%TEMP%</code> (Windows), đừng để trong home hay project.",
+    "l3": "Nói luật này ngay từ đầu, ghi vào <code>CLAUDE.md</code> hoặc <code>AGENTS.md</code>.",
+    "l4": "Xong việc thì xem lại: process còn chạy, package đã cài.",
+    "c1": "# đừng",
+    "c2": "# nên",
+    "c3": "# xong việc, kiểm tra",
+    "ex": "Từ buổi làm bộ slide này, bằng Claude Code:",
+    "e1": "Tốt: mọi file tạm nằm trong một thư mục scratchpad dưới <code>/tmp</code>.",
+    "e2": "Chưa tốt: để chụp màn hình desktop, agent cài <code>ydotool</code> và <code>gnome-screenshot</code> vào hệ thống bằng <code>sudo</code>.",
+    "e3": "Chưa tốt: một Chrome headless do agent phụ mở bị treo hơn một tiếng, đến khi mình tìm ra và kill."
+  },
+  "s11m": {
+    "h2": "Pixel của mình, ngay lúc này",
+    "p1": "Màn hình điện thoại đang điều khiển slide, truyền qua 5G và WireGuard.",
+    "alt": "Màn hình Pixel 8 Pro trực tiếp"
+  },
   "s11b": {
     "alt": "Màn hình: Claude Code trong terminal chào “hi!” bên cạnh Chrome đang mở bộ slide này",
     "cap": "Claude Code đang làm bộ slide này, ngay trên máy mình.",
@@ -175,6 +195,17 @@
     "d1": "-  \"bio\": \"Mình thích code.\",",
     "a1": "+  \"bio\": \"Mình thích code và cầu lông.\","
   },
+  "s15b": {
+    "h2": "git commit làm gì?",
+    "t1": "style.css chưa add: không vào commit này",
+    "t2": "← snapshot cả thư mục",
+    "t3": "← commit trước đó",
+    "s1": "1. Sửa file trong working directory.",
+    "s2": "2. git add: chọn file đưa vào staging area.",
+    "s3": "3. git commit: đóng gói staging thành commit mới.",
+    "s4": "4. main nhảy lên commit mới, parent trỏ về commit cũ.",
+    "alt": "Từ working directory qua staging area thành commit, rồi main dịch lên commit mới"
+  },
   "s16": {
     "h2": "branch và tag",
     "p1": "<code class=\"o\">branch</code> là một hướng phát triển riêng. Làm feature mới trên branch, <code>main</code> vẫn an toàn.",
@@ -189,6 +220,15 @@
     "p1": "Tạo thêm merge commit <b class=\"g\">M</b>. Giữ nguyên lịch sử thật, an toàn, dễ hiểu. Mặc định nên dùng cái này.",
     "p2": "Chép C, D thành C′, D′ đặt lên sau E. Lịch sử thẳng, gọn, nhưng <span class=\"r\">viết lại</span> commit: đừng rebase branch người khác đang dùng."
   },
+  "s18b": {
+    "h2": "Merge conflict",
+    "p1": "Hai branch cùng sửa <b>cùng dòng</b> của một file. Git không đoán được nên dừng lại và hỏi bạn.",
+    "h3": "Cách giải",
+    "l1": "Mở file, tìm các dấu <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>.",
+    "l2": "Giữ phần đúng (hoặc trộn cả hai), xoá 3 dòng dấu.",
+    "l3": "<code>git add</code> file đó, rồi <code>git commit</code>.",
+    "p2": "Bài thực hành K65: mỗi bạn chỉ thêm file <code>k65/members/&lt;username&gt;.json</code> của riêng mình, nên PR của các bạn sẽ không bị conflict với nhau."
+  },
   "s19": {
     "h2": "Git là công cụ, còn đây là nơi lưu repo",
     "p1": "Lớn nhất thế giới, trung tâm của mã nguồn mở. Thuộc Microsoft.",
@@ -196,6 +236,13 @@
     "p3": "Của Atlassian, đi cùng Jira trong nhiều công ty.",
     "p4": "Phi lợi nhuận, nhẹ, self-host dễ dàng.",
     "p5": "Trong buổi hôm nay, chúng ta sẽ sử dụng GitHub. Repo <b>ftulabs.github.io</b> cũng nằm ở đây."
+  },
+  "s19b": {
+    "h2": "Bốn thứ cần biết trên GitHub",
+    "c1": "Tài khoản chung cho nhóm: nhiều repo, nhiều thành viên. Ví dụ: ftulabs.",
+    "c2": "Nơi báo lỗi, đề xuất tính năng, trao đổi công việc. Ví dụ: repo uv.",
+    "c3": "Đề nghị gộp branch của bạn vào repo, để người khác xem và duyệt. Đây là PR #21 thêm trang K65.",
+    "c4": "Tự chạy workflow khi có push hoặc PR: kiểm tra file, build, deploy."
   },
   "s20": {
     "h2": "Tạo tài khoản GitHub",
