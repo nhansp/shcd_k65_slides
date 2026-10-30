@@ -49,12 +49,13 @@ class Mirror:
                     self.proc = None
                     return
             self.proc = subprocess.Popen(
-                ["ffmpeg", "-loglevel", "error", "-f", "v4l2", "-i", MIRROR_DEV,
+                ["ffmpeg", "-loglevel", "error", "-fflags", "nobuffer", "-flags", "low_delay",
+                 "-f", "v4l2", "-i", MIRROR_DEV,
                  "-vf", "scale=-2:1100", "-q:v", "6", "-f", "image2pipe", "-c:v", "mjpeg", "-"],
                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
             buf = b""
             while True:
-                chunk = self.proc.stdout.read(65536)
+                chunk = self.proc.stdout.read1(65536)   # whatever is there; read() would sit on a finished frame
                 if not chunk:
                     break
                 buf += chunk
@@ -90,10 +91,18 @@ mirror = Mirror()
 rot = {"rot": 0, "asked": 0.0, "running": False}
 
 
+def mirror_serial():
+    """The adb path mirror.sh is using right now (USB, LAN or WireGuard)."""
+    try:
+        return (ROOT / ".mirror-serial").read_text().strip() or MIRROR_ADB
+    except OSError:
+        return MIRROR_ADB
+
+
 def poll_rotation():
     while time.time() - rot["asked"] < 10:
         try:
-            out = subprocess.run(["adb", "-s", MIRROR_ADB, "shell", "dumpsys input | grep -m1 -o 'orientation=[0-3]'"],
+            out = subprocess.run(["adb", "-s", mirror_serial(), "shell", "dumpsys input | grep -m1 -o 'orientation=[0-3]'"],
                                  capture_output=True, text=True, timeout=4).stdout
             if out.strip():
                 rot["rot"] = int(out.strip()[-1])
